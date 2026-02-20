@@ -51,21 +51,15 @@ export default async function handler(req, res) {
 
     const cachedUrl = videoCache.get(tweetId);
     if (cachedUrl) {
-        return proxyVideo(cachedUrl, res);
+        return proxyVideo(cachedUrl, res, req);
     }
 
     try {
         const videoUrl = await fetchTwitterVideoUrl(tweetId);
 
         if (videoUrl) {
-            res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate');
-            return res.json({
-                tweetId: tweetId,
-                videoUrl: videoUrl,
-                contentType: 'video/mp4',
-                local: false,
-                direct: true
-            });
+            videoCache.set(tweetId, videoUrl);
+            return proxyVideo(videoUrl, res, req);
         }
     } catch (error) {
         console.error('Video fetch error:', error.message);
@@ -121,16 +115,21 @@ async function fetchTwitterVideoUrl(tweetId) {
     }
 }
 
-async function proxyVideo(videoUrl, res) {
+async function proxyVideo(videoUrl, res, req) {
     try {
-        const response = await fetch(videoUrl, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Accept': '*/*',
-                'Accept-Language': 'en-US,en;q=0.9',
-                'Referer': 'https://x.com/',
-            }
-        });
+        const headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': '*/*',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Referer': 'https://x.com/',
+            'Origin': 'https://x.com',
+        };
+
+        if (req.headers.range) {
+            headers['Range'] = req.headers.range;
+        }
+
+        const response = await fetch(videoUrl, { headers });
 
         if (!response.ok) {
             console.error('Video fetch failed:', response.status, videoUrl);
@@ -142,15 +141,29 @@ async function proxyVideo(videoUrl, res) {
 
         const contentType = response.headers.get('content-type') || 'video/mp4';
         const contentLength = response.headers.get('content-length');
+        const contentRange = response.headers.get('content-range');
 
         res.setHeader('Content-Type', contentType);
         res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Accept-Ranges', 'bytes');
+        
         if (contentLength) {
             res.setHeader('Content-Length', contentLength);
         }
+        if (contentRange) {
+            res.setHeader('Content-Range', contentRange);
+            res.status(206);
+        } else {
+            res.status(200);
+        }
 
-        res.status(200);
-        return response.body.pipe(res);
+        const reader = response.body.getReader();
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            res.write(Buffer.from(value));
+        }
+        return res.end();
     } catch (error) {
         console.error('Proxy error:', error.message, videoUrl);
         return res.status(500).json({ 

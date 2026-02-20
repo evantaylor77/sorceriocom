@@ -205,27 +205,19 @@ class SeksenSaniyeApp {
     }
 
     playProxyVideo(proxyUrl, tweetId) {
+        this.newsVideo.style.display = 'block';
+        this.videoControls.style.display = 'flex';
+        this.newsVideo.src = proxyUrl;
         this.videoContainer.style.display = 'block';
-        this.embedContainer.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">Video yükleniyor...</p>';
-        this.newsVideo.style.display = 'none';
-        this.videoControls.style.display = 'none';
 
-        fetch(proxyUrl)
-            .then(res => res.json())
-            .then(data => {
-                if (data.videoUrl) {
-                    this.embedContainer.innerHTML = '';
-                    this.newsVideo.style.display = 'block';
-                    this.videoControls.style.display = 'flex';
-                    this.newsVideo.src = data.videoUrl;
-                    this.playVideo();
-                } else {
-                    this.displayTwitterEmbedFallback(`https://x.com/BuzzHaber/status/${tweetId}`);
-                }
-            })
-            .catch(() => {
-                this.displayTwitterEmbedFallback(`https://x.com/BuzzHaber/status/${tweetId}`);
-            });
+        this.newsVideo.onerror = () => {
+            console.log('Proxy video failed, trying Twitter embed');
+            this.newsVideo.style.display = 'none';
+            this.videoControls.style.display = 'none';
+            this.displayTwitterEmbedFallback(`https://x.com/BuzzHaber/status/${tweetId}`);
+        };
+
+        this.playVideo();
     }
 
     playDirectVideo(videoUrl) {
