@@ -199,7 +199,7 @@ class SeksenSaniyeApp {
 
         try {
             // Try to get direct video URL from our proxy API
-            const response = await fetch(`/api/video-proxy?tweetUrl=${encodeURIComponent(tweetUrl)}`);
+            const response = await fetch(`/api/scrape-tweets?tweetUrl=${encodeURIComponent(tweetUrl)}`);
 
             if (response.ok) {
                 const data = await response.json();
