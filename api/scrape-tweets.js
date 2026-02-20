@@ -1,11 +1,10 @@
-// 60Saniye API - Scrape tweets from @buzzhaber profile
-// Vercel serverless function
-
 import fs from 'fs';
 import path from 'path';
 
 const LOCAL_TWEETS_PATH = path.join(process.cwd(), 'data/tweets.json');
 const TARGET_PROFILE = 'buzzhaber';
+
+const videoCache = new Map();
 
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Credentials', true);
@@ -22,10 +21,11 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { limit = 20, tweetUrl } = req.query;
+        const { limit = 20, tweetUrl, tweetId } = req.query;
 
-        if (tweetUrl) {
-            return await handleVideoProxy(tweetUrl, res);
+        if (tweetUrl || tweetId) {
+            const url = tweetUrl || `https://x.com/${TARGET_PROFILE}/status/${tweetId}`;
+            return await handleVideoProxy(url, res);
         }
 
         let tweets = await loadTweetsFromLocal();
@@ -33,9 +33,21 @@ export default async function handler(req, res) {
         tweets.sort((a, b) => new Date(b.time) - new Date(a.time));
         tweets = tweets.slice(0, parseInt(limit));
 
-        const formattedTweets = tweets.map(tweet => {
-            const videoMedia = tweet.media?.find(m => m.type === 'video' && m.url?.startsWith('/videos/'));
+        const formattedTweets = await Promise.all(tweets.map(async (tweet) => {
+            const videoMedia = tweet.media?.find(m => m.type === 'video');
+            const tweetUrlMedia = tweet.media?.find(m => m.type === 'tweet_url');
             
+            let videoUrl = null;
+            
+            if (videoMedia?.url?.startsWith('/videos/')) {
+                videoUrl = videoMedia.url;
+            } else if (videoMedia?.url?.startsWith('http')) {
+                videoUrl = videoMedia.url;
+            } else if (tweetUrlMedia?.url || tweet.id) {
+                const url = tweetUrlMedia?.url || `https://x.com/${TARGET_PROFILE}/status/${tweet.id}`;
+                videoUrl = await fetchVideoUrl(url, tweet.id);
+            }
+
             return {
                 id: tweet.id,
                 text: tweet.text,
@@ -43,14 +55,14 @@ export default async function handler(req, res) {
                 username: `@${TARGET_PROFILE}`,
                 time: formatTime(tweet.time),
                 media: tweet.media || [],
-                hasVideo: !!videoMedia,
+                hasVideo: tweet.video || !!videoUrl,
                 hasImage: tweet.image || false,
-                videoUrl: videoMedia?.url || null,
+                videoUrl: videoUrl,
                 likes: tweet.engagement?.likes || 0,
                 retweets: tweet.engagement?.retweets || 0,
                 profile: tweet.profile
             };
-        });
+        }));
 
         return res.json({
             tweets: formattedTweets,
@@ -66,6 +78,89 @@ export default async function handler(req, res) {
     }
 }
 
+async function fetchVideoUrl(tweetUrl, tweetId) {
+    if (videoCache.has(tweetId)) {
+        return videoCache.get(tweetId);
+    }
+
+    try {
+        const response = await fetch(tweetUrl, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5',
+            }
+        });
+
+        if (!response.ok) {
+            return null;
+        }
+
+        const html = await response.text();
+        let videoUrl = null;
+
+        const mp4Matches = html.match(/https:\/\/video\.twimg\.com\/[^"'\s<>]+\.mp4[^"'\s<>]*/g);
+        if (mp4Matches && mp4Matches.length > 0) {
+            videoUrl = mp4Matches[0];
+            if (videoUrl.includes('?')) {
+                videoUrl = videoUrl.split('?')[0];
+            }
+        }
+
+        if (!videoUrl) {
+            const twimgMatches = html.match(/https:\/\/video\.twimg\.com\/[^"'\s<>]+/g);
+            if (twimgMatches && twimgMatches.length > 0) {
+                for (const match of twimgMatches) {
+                    if (match.includes('.mp4') || match.includes('vid')) {
+                        videoUrl = match.split(/["'<>\s]/)[0];
+                        if (videoUrl.includes('?')) {
+                            videoUrl = videoUrl.split('?')[0];
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!videoUrl) {
+            const videoUrlMatch = html.match(/"video_url"\s*:\s*"([^"]+)"/);
+            if (videoUrlMatch) {
+                videoUrl = videoUrlMatch[1].replace(/\\\//g, '/');
+            }
+        }
+
+        if (!videoUrl) {
+            const variantsMatch = html.match(/"variants"\s*:\s*\[([^\]]+)\]/);
+            if (variantsMatch) {
+                const urlMatch = variantsMatch[1].match(/"url"\s*:\s*"([^"]+)"/g);
+                if (urlMatch) {
+                    for (const um of urlMatch) {
+                        const url = um.match(/"url"\s*:\s*"([^"]+)"/)?.[1]?.replace(/\\\//g, '/');
+                        if (url && url.includes('.mp4')) {
+                            videoUrl = url;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (videoUrl) {
+            videoCache.set(tweetId, videoUrl);
+            if (videoCache.size > 100) {
+                const firstKey = videoCache.keys().next().value;
+                videoCache.delete(firstKey);
+            }
+        }
+
+        return videoUrl;
+
+    } catch (error) {
+        console.error(`Error fetching video URL for ${tweetId}:`, error.message);
+        return null;
+    }
+}
+
 async function handleVideoProxy(tweetUrl, res) {
     try {
         const tweetIdMatch = tweetUrl.match(/status\/(\d+)/);
@@ -75,7 +170,6 @@ async function handleVideoProxy(tweetUrl, res) {
 
         const tweetId = tweetIdMatch[1];
 
-        // Check if we have local video for this tweet
         const videosDir = path.join(process.cwd(), 'data/videos');
         const possibleExtensions = ['.mp4', '.webm'];
         
@@ -91,53 +185,21 @@ async function handleVideoProxy(tweetUrl, res) {
             }
         }
 
-        // Try to fetch from Twitter page
-        const tweetPageResponse = await fetch(tweetUrl, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-            }
-        });
+        const videoUrl = await fetchVideoUrl(tweetUrl, tweetId);
 
-        if (!tweetPageResponse.ok) {
-            throw new Error(`Failed to fetch tweet: ${tweetPageResponse.status}`);
-        }
-
-        const html = await tweetPageResponse.text();
-        let videoUrl = null;
-
-        const m3u8Match = html.match(/https:\/\/video\.twimg\.com\/[^"'\s]+\.m3u8[^"'\s]*/g);
-        if (m3u8Match && m3u8Match.length > 0) {
-            videoUrl = m3u8Match[0];
-        }
-
-        if (!videoUrl) {
-            const mp4Match = html.match(/https:\/\/video\.twimg\.com\/[^"'\s]+\.mp4[^"'\s]*/g);
-            if (mp4Match && mp4Match.length > 0) {
-                videoUrl = mp4Match[0];
-            }
-        }
-
-        if (!videoUrl) {
-            const dataMatch = html.match(/"video_url":"([^"]+)"/);
-            if (dataMatch) {
-                videoUrl = dataMatch[1].replace(/\\\//g, '/');
-            }
-        }
-
-        if (!videoUrl) {
-            return res.status(404).json({
-                error: 'Video URL not found',
+        if (videoUrl) {
+            return res.json({
                 tweetId: tweetId,
-                fallbackUrl: tweetUrl
+                videoUrl: videoUrl,
+                contentType: videoUrl.includes('.m3u8') ? 'application/x-mpegURL' : 'video/mp4',
+                local: false
             });
         }
 
-        return res.json({
+        return res.status(404).json({
+            error: 'Video URL not found',
             tweetId: tweetId,
-            videoUrl: videoUrl,
-            contentType: videoUrl.includes('.m3u8') ? 'application/x-mpegURL' : 'video/mp4',
-            local: false
+            fallbackUrl: tweetUrl
         });
 
     } catch (error) {

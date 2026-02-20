@@ -180,53 +180,53 @@ class SeksenSaniyeApp {
         this.newsVideo.style.display = 'none';
         this.videoControls.style.display = 'none';
 
-        if (news.hasVideo) {
-            const videoMedia = news.media?.find(m => m.type === 'video');
+        if (news.hasVideo || news.video) {
+            if (news.videoUrl) {
+                this.playDirectVideo(news.videoUrl);
+                return;
+            }
 
-            if (videoMedia && videoMedia.url) {
-                let videoUrl = videoMedia.url;
-                if (videoUrl.startsWith('/videos/')) {
-                    videoUrl = '/data/videos/' + videoUrl.split('/').pop();
-                }
-                if (videoUrl.startsWith('/videos/') || videoUrl.startsWith('/data/videos/')) {
-                    this.newsVideo.style.display = 'block';
-                    this.videoControls.style.display = 'flex';
-                    this.newsVideo.src = videoUrl;
-                    this.videoContainer.style.display = 'block';
-                    
-                    this.newsVideo.onerror = () => {
-                        console.log('Local video failed, falling back to Twitter embed');
-                        this.newsVideo.style.display = 'none';
-                        this.videoControls.style.display = 'none';
-                        const tweetUrl = `https://x.com/BuzzHaber/status/${news.id}`;
-                        this.displayTwitterEmbedFallback(tweetUrl);
-                    };
-                    this.playVideo();
-                    return;
-                }
-                
-                if (videoMedia.url.startsWith('http') && !videoMedia.url.startsWith('blob:')) {
-                    this.newsVideo.style.display = 'block';
-                    this.videoControls.style.display = 'flex';
-                    this.newsVideo.src = videoMedia.url;
-                    this.videoContainer.style.display = 'block';
-                    this.playVideo();
-                    return;
-                }
+            const tweetId = news.id;
+            if (tweetId) {
+                const proxyUrl = `/api/video/${tweetId}`;
+                this.playProxyVideo(proxyUrl, tweetId);
+                return;
             }
 
             const tweetUrlMedia = news.media?.find(m => m.type === 'tweet_url');
             if (tweetUrlMedia) {
                 this.loadVideoFromTweetUrl(tweetUrlMedia.url);
-            } else if (news.id) {
-                const tweetUrl = `https://x.com/BuzzHaber/status/${news.id}`;
-                this.displayTwitterEmbedFallback(tweetUrl);
             } else {
                 this.videoContainer.style.display = 'none';
             }
         } else {
             this.videoContainer.style.display = 'none';
         }
+    }
+
+    playProxyVideo(proxyUrl, tweetId) {
+        this.newsVideo.style.display = 'block';
+        this.videoControls.style.display = 'flex';
+        this.newsVideo.src = proxyUrl;
+        this.videoContainer.style.display = 'block';
+
+        this.newsVideo.onerror = () => {
+            console.log('Proxy video failed, trying Twitter embed');
+            this.newsVideo.style.display = 'none';
+            this.videoControls.style.display = 'none';
+            const tweetUrl = `https://x.com/BuzzHaber/status/${tweetId}`;
+            this.displayTwitterEmbedFallback(tweetUrl);
+        };
+
+        this.playVideo();
+    }
+
+    playDirectVideo(videoUrl) {
+        this.newsVideo.style.display = 'block';
+        this.videoControls.style.display = 'flex';
+        this.newsVideo.src = videoUrl;
+        this.videoContainer.style.display = 'block';
+        this.playVideo();
     }
 
     async loadVideoFromTweetUrl(tweetUrl) {
