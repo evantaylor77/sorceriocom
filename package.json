@@ -1,0 +1,15 @@
+{
+  "name": "buzznews",
+  "version": "1.0.0",
+  "description": "Modern haber sitesi - X tweet entegrasyonlu",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "twitter-api-v2": "^1.15.2"
+  },
+  "devDependencies": {
+    "vercel": "^37.4.0"
+  }
+}

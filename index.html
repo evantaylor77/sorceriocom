@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BuzzHaber - 60 Saniyede Haber</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-text">BuzzHaber</span>
+            </div>
+            <nav class="nav">
+                <a href="#" class="nav-link active">Haberler</a>
+                <a href="#" class="nav-link">Trending</a>
+                <a href="#" class="nav-link">Spor</a>
+                <a href="#" class="nav-link">Teknoloji</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <div class="news-header">
+                <h1 class="title">Son Dakika Haberleri</h1>
+                <p class="subtitle">60 saniyede gündemi takip et</p>
+            </div>
+
+            <div class="news-feed" id="newsFeed">
+                <!-- News cards will be loaded here -->
+            </div>
+
+            <div class="load-more-container">
+                <button class="load-more-btn" id="loadMoreBtn">
+                    <span class="btn-text">Devamını Yükle</span>
+                    <span class="btn-icon">↓</span>
+                </button>
+                <div class="loader" id="loader" style="display: none;">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 BuzzHaber. X'ten gelen son dakika haberleri.</p>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
