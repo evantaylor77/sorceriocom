@@ -31,6 +31,8 @@ class SeksenSaniyeApp {
         this.newsTime = document.getElementById('newsTime');
         this.newsVideo = document.getElementById('newsVideo');
         this.videoContainer = document.getElementById('videoContainer');
+        this.embedContainer = document.getElementById('embedContainer');
+        this.videoControls = document.getElementById('videoControls');
         this.hashtagsContainer = document.getElementById('hashtags');
 
         // Navigation elements
@@ -160,18 +162,104 @@ class SeksenSaniyeApp {
     }
 
     displayMedia(news) {
+        // Reset containers
+        this.embedContainer.innerHTML = '';
+        this.newsVideo.style.display = 'none';
+        this.videoControls.style.display = 'none';
+
         // Check if news has video
         if (news.hasVideo && news.media && news.media.length > 0) {
-            const videoUrl = news.media[0].url;
+            // Check for tweet_url (Twitter video)
+            const tweetUrlMedia = news.media.find(m => m.type === 'tweet_url');
+            const videoMedia = news.media.find(m => m.type === 'video');
 
-            this.newsVideo.src = videoUrl;
-            this.videoContainer.style.display = 'block';
-
-            // Auto-play video muted
-            this.playVideo();
+            if (tweetUrlMedia) {
+                // Use video proxy to get direct video URL for autoplay
+                this.loadVideoFromTweetUrl(tweetUrlMedia.url);
+            } else if (videoMedia && videoMedia.url && !videoMedia.url.startsWith('blob:')) {
+                // Direct video URL
+                this.newsVideo.style.display = 'block';
+                this.videoControls.style.display = 'flex';
+                this.newsVideo.src = videoMedia.url;
+                this.videoContainer.style.display = 'block';
+                this.playVideo();
+            } else {
+                // No playable video
+                this.videoContainer.style.display = 'none';
+            }
         } else {
             this.videoContainer.style.display = 'none';
         }
+    }
+
+    async loadVideoFromTweetUrl(tweetUrl) {
+        // Show loading state
+        this.videoContainer.style.display = 'block';
+        this.embedContainer.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">Video yükleniyor...</p>';
+
+        try {
+            // Try to get direct video URL from our proxy API
+            const response = await fetch(`/api/video-proxy?tweetUrl=${encodeURIComponent(tweetUrl)}`);
+
+            if (response.ok) {
+                const data = await response.json();
+
+                if (data.videoUrl) {
+                    // We got a direct video URL - play it
+                    this.embedContainer.innerHTML = '';
+                    this.newsVideo.style.display = 'block';
+                    this.videoControls.style.display = 'flex';
+                    this.newsVideo.src = data.videoUrl;
+                    this.playVideo();
+                } else {
+                    // No video URL found - use Twitter embed fallback
+                    this.displayTwitterEmbedFallback(tweetUrl);
+                }
+            } else {
+                // API failed - use Twitter embed fallback
+                this.displayTwitterEmbedFallback(tweetUrl);
+            }
+        } catch (error) {
+            console.error('Video proxy error:', error);
+            // On error, use Twitter embed fallback
+            this.displayTwitterEmbedFallback(tweetUrl);
+        }
+    }
+
+    displayTwitterEmbedFallback(tweetUrl) {
+        // Fallback to Twitter embed (no autoplay)
+        this.embedContainer.innerHTML = '';
+        this.newsVideo.style.display = 'none';
+        this.videoControls.style.display = 'none';
+
+        if (!document.getElementById('twitter-wjs')) {
+            const script = document.createElement('script');
+            script.id = 'twitter-wjs';
+            script.src = 'https://platform.twitter.com/widgets.js';
+            script.charset = 'utf-8';
+            script.async = true;
+            document.head.appendChild(script);
+        }
+
+        const blockquote = document.createElement('blockquote');
+        blockquote.className = 'twitter-tweet';
+        blockquote.setAttribute('data-theme', 'dark');
+
+        const link = document.createElement('a');
+        link.href = tweetUrl;
+        link.textContent = 'Videoyu görüntüle';
+
+        blockquote.appendChild(link);
+        this.embedContainer.appendChild(blockquote);
+
+        if (window.twttr) {
+            window.twttr.widgets.load(this.embedContainer);
+        }
+    }
+
+    displayTwitterEmbed(tweetUrl) {
+        // This method is now replaced by loadVideoFromTweetUrl
+        this.loadVideoFromTweetUrl(tweetUrl);
     }
 
     displayHashtags(text) {
