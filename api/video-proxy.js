@@ -100,3 +100,4 @@ export default async function handler(req, res) {
         });
     }
 }
+// Updated: 20 Şub 2026 Cum 21:30:46
