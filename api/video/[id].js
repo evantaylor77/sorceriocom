@@ -56,9 +56,16 @@ export default async function handler(req, res) {
 
     try {
         const videoUrl = await fetchTwitterVideoUrl(tweetId);
+
         if (videoUrl) {
-            videoCache.set(tweetId, videoUrl);
-            return proxyVideo(videoUrl, res);
+            res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate');
+            return res.json({
+                tweetId: tweetId,
+                videoUrl: videoUrl,
+                contentType: 'video/mp4',
+                local: false,
+                direct: true
+            });
         }
     } catch (error) {
         console.error('Video fetch error:', error.message);
