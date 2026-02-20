@@ -105,7 +105,38 @@ def build_extraction_script(profile: str) -> str:
                 }}
             }}
 
-            // ENHANCED: Extract tweet URL for Twitter embed
+            // EXTRACT DIRECT VIDEO URL FROM VIDEO ELEMENT
+            var videoUrl = null;
+            var videoEl = article.querySelector('video');
+            if (videoEl) {{
+                // Try to get direct video URL
+                videoUrl = videoEl.src || videoEl.currentSrc || '';
+                
+                // If it's a blob URL, we'll process it later
+                if (videoUrl && videoUrl.indexOf('blob:') === 0) {{
+                    // Blob URL - will be downloaded by video_downloader
+                    media.push({{ type: 'video_blob', url: videoUrl }});
+                    videoUrl = null;
+                }} else if (videoUrl && videoUrl.indexOf('http') === 0) {{
+                    // Direct HTTP URL
+                    media.push({{ type: 'video', url: videoUrl }});
+                }}
+            }}
+
+            // Try to extract video URL from source elements
+            if (!videoUrl) {{
+                var sourceEls = article.querySelectorAll('video source');
+                for (var s = 0; s < sourceEls.length; s++) {{
+                    var src = sourceEls[s].getAttribute('src');
+                    if (src && src.indexOf('http') === 0) {{
+                        media.push({{ type: 'video', url: src }});
+                        videoUrl = src;
+                        break;
+                    }}
+                }}
+            }}
+
+            // Extract tweet URL for fallback
             var tweetUrl = '';
             var statusLink = article.querySelector('a[href*="/status/"]');
             if (statusLink) {{
@@ -117,7 +148,7 @@ def build_extraction_script(profile: str) -> str:
                 }}
             }}
 
-            // Store tweet URL for embed
+            // Store tweet URL as fallback for video download
             if (tweetUrl) {{
                 media.push({{ type: 'tweet_url', url: tweetUrl }});
             }}
@@ -310,6 +341,21 @@ def build_fallback_extraction_script(profile: str) -> str:
 
             // Extract tweet URL for Twitter embed
             var media = [];
+            
+            // EXTRACT VIDEO URL FROM VIDEO ELEMENT
+            var videoEl = article.querySelector('video');
+            if (videoEl) {{
+                var videoSrc = videoEl.src || videoEl.currentSrc || '';
+                if (videoSrc) {{
+                    if (videoSrc.indexOf('blob:') === 0) {{
+                        media.push({{ type: 'video_blob', url: videoSrc }});
+                    }} else if (videoSrc.indexOf('http') === 0) {{
+                        media.push({{ type: 'video', url: videoSrc }});
+                    }}
+                }}
+            }}
+            
+            // Extract tweet URL as fallback
             var statusLink = article.querySelector('a[href*="/status/"]');
             if (statusLink) {{
                 var href = statusLink.getAttribute('href');

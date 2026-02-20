@@ -5,8 +5,8 @@
     "index": 0,
     "media": [
       {
-        "type": "tweet_url",
-        "url": "https://x.com/BuzzHaber/status/1910990893290565713"
+        "type": "video",
+        "url": "/videos/1910990893290565713.mp4"
       }
     ],
     "profile": "buzzhaber",
@@ -20,8 +20,8 @@
     "index": 1,
     "media": [
       {
-        "type": "tweet_url",
-        "url": "https://x.com/BuzzHaber/status/1908059828058046784"
+        "type": "video",
+        "url": "/videos/1908059828058046784.mp4"
       }
     ],
     "profile": "buzzhaber",
@@ -35,8 +35,8 @@
     "index": 2,
     "media": [
       {
-        "type": "tweet_url",
-        "url": "https://x.com/BuzzHaber/status/1899973494303318526"
+        "type": "video",
+        "url": "/videos/1899973494303318526.mp4"
       }
     ],
     "profile": "buzzhaber",
@@ -50,8 +50,8 @@
     "index": 3,
     "media": [
       {
-        "type": "tweet_url",
-        "url": "https://x.com/BuzzHaber/status/1910036005802893670"
+        "type": "video",
+        "url": "/videos/1910036005802893670.mp4"
       }
     ],
     "profile": "buzzhaber",
@@ -65,8 +65,8 @@
     "index": 4,
     "media": [
       {
-        "type": "tweet_url",
-        "url": "https://x.com/BuzzHaber/status/1906041717079372097"
+        "type": "video",
+        "url": "/videos/1906041717079372097.mp4"
       }
     ],
     "profile": "buzzhaber",

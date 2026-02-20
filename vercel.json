@@ -3,7 +3,28 @@
   "outputDirectory": "./",
   "functions": {
     "api/**/*.js": {
-      "runtime": "nodejs24.x"
+      "runtime": "nodejs22.x"
     }
-  }
+  },
+  "rewrites": [
+    {
+      "source": "/videos/:video*",
+      "destination": "/data/videos/:video*"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/videos/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        },
+        {
+          "key": "Content-Type",
+          "value": "video/mp4"
+        }
+      ]
+    }
+  ]
 }

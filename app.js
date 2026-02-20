@@ -108,11 +108,23 @@ class SeksenSaniyeApp {
         this.showLoading();
 
         try {
-            const response = await fetch('/api/scrape-tweets?limit=50');
-            const data = await response.json();
+            // Try API first, fall back to direct JSON
+            let data;
+            try {
+                const response = await fetch('/api/scrape-tweets?limit=50');
+                if (response.ok) {
+                    data = await response.json();
+                } else {
+                    throw new Error('API not available');
+                }
+            } catch {
+                // Fallback: load tweets directly from JSON file
+                const response = await fetch('/data/tweets.json');
+                data = await response.json();
+            }
 
-            if (data.tweets && data.tweets.length > 0) {
-                this.newsData = data.tweets;
+            if (data && data.length > 0) {
+                this.newsData = data;
                 this.currentNewsIndex = 0;
 
                 // Update total count
@@ -151,6 +163,8 @@ class SeksenSaniyeApp {
         this.displayHashtags(news.text);
 
         // Handle video/media
+        // Normalize: ensure hasVideo is set from video property
+        news.hasVideo = news.video || news.hasVideo || false;
         this.displayMedia(news);
 
         // Show content
@@ -162,29 +176,46 @@ class SeksenSaniyeApp {
     }
 
     displayMedia(news) {
-        // Reset containers
         this.embedContainer.innerHTML = '';
         this.newsVideo.style.display = 'none';
         this.videoControls.style.display = 'none';
 
-        // Check if news has video
-        if (news.hasVideo && news.media && news.media.length > 0) {
-            // Check for tweet_url (Twitter video)
-            const tweetUrlMedia = news.media.find(m => m.type === 'tweet_url');
-            const videoMedia = news.media.find(m => m.type === 'video');
+        if (news.hasVideo) {
+            // Check for local video URL first
+            const videoMedia = news.media?.find(m => m.type === 'video');
 
+            if (videoMedia && videoMedia.url) {
+                let videoUrl = videoMedia.url;
+                // Fix path for local development (Python HTTP server doesn't have /videos/ rewrite)
+                if (videoUrl.startsWith('/videos/')) {
+                    videoUrl = '/data/videos/' + videoUrl.split('/').pop();
+                }
+                if (videoUrl.startsWith('/videos/') || videoUrl.startsWith('/data/videos/')) {
+                    // Local video - play directly
+                    this.newsVideo.style.display = 'block';
+                    this.videoControls.style.display = 'flex';
+                    this.newsVideo.src = videoUrl;
+                    this.videoContainer.style.display = 'block';
+                    this.playVideo();
+                    return;
+                }
+                
+                if (videoMedia.url.startsWith('http') && !videoMedia.url.startsWith('blob:')) {
+                    // Direct HTTP video URL
+                    this.newsVideo.style.display = 'block';
+                    this.videoControls.style.display = 'flex';
+                    this.newsVideo.src = videoMedia.url;
+                    this.videoContainer.style.display = 'block';
+                    this.playVideo();
+                    return;
+                }
+            }
+
+            // Check for tweet_url as fallback
+            const tweetUrlMedia = news.media?.find(m => m.type === 'tweet_url');
             if (tweetUrlMedia) {
-                // Use video proxy to get direct video URL for autoplay
                 this.loadVideoFromTweetUrl(tweetUrlMedia.url);
-            } else if (videoMedia && videoMedia.url && !videoMedia.url.startsWith('blob:')) {
-                // Direct video URL
-                this.newsVideo.style.display = 'block';
-                this.videoControls.style.display = 'flex';
-                this.newsVideo.src = videoMedia.url;
-                this.videoContainer.style.display = 'block';
-                this.playVideo();
             } else {
-                // No playable video
                 this.videoContainer.style.display = 'none';
             }
         } else {
