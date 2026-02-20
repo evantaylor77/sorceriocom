@@ -1,13 +1,16 @@
 {
-  "name": "buzz-news",
+  "name": "60saniye",
   "version": "1.0.0",
-  "description": "Modern haber sitesi - X tweet entegrasyonlu",
+  "description": "60Saniye - Tek haber display platformu",
+  "type": "module",
   "scripts": {
     "dev": "vercel dev",
     "deploy": "vercel --prod"
   },
   "dependencies": {
-    "twitter-api-v2": "^1.15.2"
+    "twitter-api-v2": "^1.15.2",
+    "cheerio": "^1.0.0-rc.12",
+    "node-fetch": "^3.3.2"
   },
   "devDependencies": {
     "vercel": "^37.4.0"

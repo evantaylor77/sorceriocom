@@ -3,50 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BuzzHaber - Son Dakika Haberleri</title>
+    <title>60Saniye - Son Dakika Haberleri</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
-    <header class="header">
-        <div class="container">
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
             <div class="logo">
-                <span class="logo-icon">⚡</span>
-                <span class="logo-text">BuzzHaber</span>
+                <span class="logo-icon">60</span>
+                <span class="logo-text">Saniye</span>
             </div>
-            <nav class="nav">
-                <a href="#" class="nav-link active">Haberler</a>
-                <a href="#" class="nav-link">Gündem</a>
-                <a href="#" class="nav-link">Spor</a>
-            </nav>
-        </div>
-    </header>
-
-    <main class="main">
-        <div class="container">
-            <div class="news-feed" id="newsFeed">
-                <!-- Haber kartları buraya yüklenecek -->
+            <div class="progress-indicator">
+                <span id="currentIndex">1</span> / <span id="totalNews">--</span>
             </div>
+        </header>
 
-            <div class="load-more-container">
-                <button class="load-more-btn" id="loadMoreBtn">
-                    <span>Devamını Yükle</span>
-                    <span>↓</span>
-                </button>
-                <div class="loader" id="loader" style="display: none;">
-                    <div class="spinner"></div>
+        <!-- Main Content -->
+        <main class="main">
+            <div class="news-container" id="newsContainer">
+                <!-- Loading State -->
+                <div class="loading-state" id="loadingState">
+                    <div class="loader">
+                        <div class="spinner"></div>
+                        <p>Haberler yükleniyor...</p>
+                    </div>
+                </div>
+
+                <!-- News Content (hidden initially) -->
+                <div class="news-content" id="newsContent" style="display: none;">
+                    <!-- News Title -->
+                    <div class="news-header">
+                        <div class="news-avatar">⚡</div>
+                        <div class="news-meta">
+                            <span class="news-author">60Saniye Haber</span>
+                            <span class="news-username">@BuzzFinal</span>
+                            <span class="news-time" id="newsTime">Az önce</span>
+                        </div>
+                    </div>
+
+                    <!-- News Text -->
+                    <div class="news-text" id="newsText">
+                        Haber içeriği buraya gelecek...
+                    </div>
+
+                    <!-- Video Container -->
+                    <div class="video-container" id="videoContainer">
+                        <video id="newsVideo"
+                               class="news-video"
+                               playsinline
+                               muted
+                               loop
+                               preload="auto">
+                            <source src="" type="video/mp4">
+                            Tarayıcınız video oynatmayı desteklemiyor.
+                        </video>
+                        <div class="video-overlay"></div>
+                        <div class="video-controls">
+                            <button class="control-btn" id="playPauseBtn">
+                                <span class="icon-play">▶</span>
+                                <span class="icon-pause" style="display: none;">⏸</span>
+                            </button>
+                            <button class="control-btn" id="muteBtn">
+                                <span class="icon-muted">🔇</span>
+                                <span class="icon-unmuted" style="display: none;">🔊</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Hashtags -->
+                    <div class="hashtags" id="hashtags"></div>
+                </div>
+
+                <!-- Error State (hidden initially) -->
+                <div class="error-state" id="errorState" style="display: none;">
+                    <div class="error-icon">⚠️</div>
+                    <p>Haberler yüklenirken bir hata oluştu.</p>
+                    <button class="retry-btn" id="retryBtn">Tekrar Dene</button>
                 </div>
             </div>
-        </div>
-    </main>
 
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; 2025 BuzzHaber - BuzzFinal entegrasyonlu haber platformu</p>
-        </div>
-    </footer>
+            <!-- Navigation -->
+            <footer class="footer">
+                <button class="next-btn" id="nextBtn" disabled>
+                    <span class="btn-text">Sonraki Haber</span>
+                    <span class="btn-icon">→</span>
+                </button>
+            </footer>
+        </main>
+    </div>
 
     <script src="app.js"></script>
 </body>

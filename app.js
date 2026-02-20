@@ -1,137 +1,190 @@
-// BuzzHaber News App - BuzzFinal Integration
+// 60Saniye News App - Single news display platform
 
-class BuzzNewsApp {
+class SeksenSaniyeApp {
     constructor() {
-        this.tweets = [];
-        this.currentPage = 0;
-        this.tweetsPerPage = 20;
+        this.newsData = [];
+        this.currentNewsIndex = 0;
         this.isLoading = false;
-        this.totalTweets = 0;
+        this.currentVideo = null;
 
         this.init();
     }
 
-    init() {
-        this.loadTweets();
-        this.setupInfiniteScroll();
+    async init() {
+        this.cacheElements();
         this.setupEventListeners();
+        await this.fetchNews();
+
+        if (this.newsData.length > 0) {
+            this.displayNews(0);
+        }
     }
 
-    async loadTweets() {
+    cacheElements() {
+        // Container elements
+        this.loadingState = document.getElementById('loadingState');
+        this.newsContent = document.getElementById('newsContent');
+        this.errorState = document.getElementById('errorState');
+
+        // News display elements
+        this.newsText = document.getElementById('newsText');
+        this.newsTime = document.getElementById('newsTime');
+        this.newsVideo = document.getElementById('newsVideo');
+        this.videoContainer = document.getElementById('videoContainer');
+        this.hashtagsContainer = document.getElementById('hashtags');
+
+        // Navigation elements
+        this.nextBtn = document.getElementById('nextBtn');
+        this.currentIndexEl = document.getElementById('currentIndex');
+        this.totalNewsEl = document.getElementById('totalNews');
+        this.retryBtn = document.getElementById('retryBtn');
+
+        // Video controls
+        this.playPauseBtn = document.getElementById('playPauseBtn');
+        this.muteBtn = document.getElementById('muteBtn');
+    }
+
+    setupEventListeners() {
+        // Next button
+        this.nextBtn.addEventListener('click', () => this.nextNews());
+
+        // Retry button
+        if (this.retryBtn) {
+            this.retryBtn.addEventListener('click', () => this.fetchNews());
+        }
+
+        // Video controls
+        if (this.playPauseBtn) {
+            this.playPauseBtn.addEventListener('click', () => this.togglePlayPause());
+        }
+
+        if (this.muteBtn) {
+            this.muteBtn.addEventListener('click', () => this.toggleMute());
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.code === 'ArrowRight') {
+                e.preventDefault();
+                this.nextNews();
+            }
+            if (e.code === 'KeyM') {
+                this.toggleMute();
+            }
+        });
+
+        // Touch gestures for mobile
+        this.setupTouchGestures();
+    }
+
+    setupTouchGestures() {
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        });
+
+        document.addEventListener('touchend', (e) => {
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+            const diffX = touchEndX - touchStartX;
+            const diffY = touchEndY - touchStartY;
+
+            // Swipe left to go to next news
+            if (Math.abs(diffX) > Math.abs(diffY) && diffX < -50) {
+                this.nextNews();
+            }
+        });
+    }
+
+    async fetchNews() {
         if (this.isLoading) return;
 
         this.isLoading = true;
-        this.showLoader(true);
+        this.showLoading();
 
         try {
-            const offset = this.currentPage * this.tweetsPerPage;
-            const response = await fetch(`/api/tweets?limit=${this.tweetsPerPage}&offset=${offset}`);
+            const response = await fetch('/api/scrape-tweets?limit=50');
             const data = await response.json();
 
             if (data.tweets && data.tweets.length > 0) {
-                this.tweets = [...this.tweets, ...data.tweets];
-                this.totalTweets = data.total || this.tweets.length;
-                this.renderTweets(data.tweets);
-                this.currentPage++;
+                this.newsData = data.tweets;
+                this.currentNewsIndex = 0;
+
+                // Update total count
+                if (this.totalNewsEl) {
+                    this.totalNewsEl.textContent = this.newsData.length;
+                }
+
+                this.hideLoading();
+                this.displayNews(0);
             } else {
-                this.showEndMessage();
+                this.showError();
             }
         } catch (error) {
-            console.error('Failed to load tweets:', error);
+            console.error('Failed to fetch news:', error);
+            this.showError();
         } finally {
             this.isLoading = false;
-            this.showLoader(false);
         }
     }
 
-    renderTweets(tweets) {
-        const feed = document.getElementById('newsFeed');
+    displayNews(index) {
+        if (!this.newsData[index]) return;
 
-        tweets.forEach(tweet => {
-            const card = this.createTweetCard(tweet);
-            feed.appendChild(card);
-        });
+        const news = this.newsData[index];
 
-        // Setup media elements
-        this.setupMediaElements();
-    }
-
-    createTweetCard(tweet) {
-        const card = document.createElement('div');
-        card.className = 'news-card';
-        card.dataset.tweetId = tweet.id;
-
-        // Extract hashtags from text
-        const hashtags = this.extractHashtags(tweet.text);
-        const hashtagHtml = hashtags.length > 0 ?
-            `<div class="news-hashtags">${hashtags.map(tag => `<span class="hashtag">#${tag}</span>`).join('')}</div>` : '';
-
-        // Format text with line breaks
-        const formattedText = this.formatText(tweet.text);
-
-        // Media HTML
-        let mediaHtml = '';
-        if (tweet.media && tweet.media.length > 0) {
-            const firstMedia = tweet.media[0];
-            if (firstMedia.type === 'video' || tweet.hasVideo) {
-                mediaHtml = `
-                    <div class="news-video-container">
-                        <video class="news-video" muted playsinline loop
-                               poster="${firstMedia.url || ''}"
-                               src="${firstMedia.url || ''}">
-                        </video>
-                        <div class="video-overlay"></div>
-                        <div class="video-play-btn"></div>
-                        <div class="mute-indicator">🔇</div>
-                    </div>
-                `;
-            } else if (firstMedia.type === 'image' || tweet.hasImage) {
-                const images = tweet.media.map(m => m.url).filter(Boolean);
-                if (images.length > 0) {
-                    mediaHtml = `
-                        <div class="news-image-container ${images.length > 1 ? 'multiple-images' : ''}">
-                            ${images.map(url => `
-                                <img src="${url}" alt="Haber görseli" class="news-image" loading="lazy">
-                            `).join('')}
-                        </div>
-                    `;
-                }
-            }
+        // Update current index display
+        if (this.currentIndexEl) {
+            this.currentIndexEl.textContent = index + 1;
         }
 
-        card.innerHTML = `
-            <div class="news-card-header">
-                <div class="news-meta">
-                    <div class="news-avatar">⚡</div>
-                    <div>
-                        <div class="news-author">${tweet.author}</div>
-                        <div class="news-username">${tweet.username}</div>
-                    </div>
-                    <div class="news-time">${tweet.time}</div>
-                </div>
-                <div class="news-content">
-                    ${formattedText}
-                    ${hashtagHtml}
-                </div>
-            </div>
-            ${mediaHtml}
-            <div class="news-card-actions">
-                <button class="action-btn like" onclick="app.toggleLike(this)">
-                    <span>❤️</span>
-                    <span class="count">${this.formatNumber(tweet.likes || 0)}</span>
-                </button>
-                <button class="action-btn retweet" onclick="app.toggleRetweet(this)">
-                    <span>🔄</span>
-                    <span class="count">${this.formatNumber(tweet.retweets || 0)}</span>
-                </button>
-                <button class="action-btn share" onclick="app.shareTweet('${tweet.id}')">
-                    <span>📤</span>
-                    <span>Paylaş</span>
-                </button>
-            </div>
-        `;
+        // Update text content
+        this.newsText.innerHTML = this.formatText(news.text);
+        this.newsTime.textContent = news.time;
 
-        return card;
+        // Display hashtags
+        this.displayHashtags(news.text);
+
+        // Handle video/media
+        this.displayMedia(news);
+
+        // Show content
+        this.newsContent.style.display = 'block';
+        this.errorState.style.display = 'none';
+
+        // Enable next button
+        this.nextBtn.disabled = false;
+    }
+
+    displayMedia(news) {
+        // Check if news has video
+        if (news.hasVideo && news.media && news.media.length > 0) {
+            const videoUrl = news.media[0].url;
+
+            this.newsVideo.src = videoUrl;
+            this.videoContainer.style.display = 'block';
+
+            // Auto-play video muted
+            this.playVideo();
+        } else {
+            this.videoContainer.style.display = 'none';
+        }
+    }
+
+    displayHashtags(text) {
+        const hashtags = this.extractHashtags(text);
+
+        if (hashtags.length > 0) {
+            this.hashtagsContainer.innerHTML = hashtags
+                .map(tag => `<span class="hashtag">#${tag}</span>`)
+                .join('');
+            this.hashtagsContainer.style.display = 'flex';
+        } else {
+            this.hashtagsContainer.style.display = 'none';
+        }
     }
 
     extractHashtags(text) {
@@ -141,149 +194,102 @@ class BuzzNewsApp {
     }
 
     formatText(text) {
-        // Convert line breaks
-        text = text.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>');
-        return `<p>${text}</p>`;
+        // Convert line breaks to paragraphs
+        const lines = text.split('\n').filter(line => line.trim());
+        return lines.map(line => `<p>${line}</p>`).join('');
     }
 
-    formatNumber(num) {
-        if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-        if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-        return num.toString();
+    nextNews() {
+        // Cycle back to start if at end
+        this.currentNewsIndex = (this.currentNewsIndex + 1) % this.newsData.length;
+
+        // Add transition animation
+        this.newsContent.style.opacity = '0';
+        this.newsContent.style.transform = 'translateX(-20px)';
+
+        setTimeout(() => {
+            this.displayNews(this.currentNewsIndex);
+            this.newsContent.style.transform = 'translateX(20px)';
+
+            setTimeout(() => {
+                this.newsContent.style.opacity = '1';
+                this.newsContent.style.transform = 'translateX(0)';
+            }, 50);
+        }, 200);
     }
 
-    setupMediaElements() {
-        const videos = document.querySelectorAll('.news-video:not(.initialized)');
-
-        videos.forEach(video => {
-            video.classList.add('initialized');
-            const card = video.closest('.news-card');
-            const playBtn = card.querySelector('.video-play-btn');
-            const muteIndicator = card.querySelector('.mute-indicator');
-
-            // Auto-play on viewport
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.play().catch(() => {});
-                    } else {
-                        entry.target.pause();
-                    }
-                });
-            }, { threshold: 0.5 });
-
-            observer.observe(video);
-
-            // Hover to play/pause
-            card.addEventListener('mouseenter', () => {
-                video.play().catch(() => {});
+    playVideo() {
+        if (this.newsVideo && this.newsVideo.src) {
+            this.newsVideo.play().catch(err => {
+                console.log('Auto-play prevented:', err);
             });
-
-            card.addEventListener('mouseleave', () => {
-                video.pause();
-            });
-
-            // Click to toggle mute
-            video.addEventListener('click', () => {
-                video.muted = !video.muted;
-                if (muteIndicator) {
-                    muteIndicator.textContent = video.muted ? '🔇' : '🔊';
-                    muteIndicator.style.opacity = video.muted ? '1' : '0';
-                }
-            });
-
-            // Play button click
-            if (playBtn) {
-                playBtn.addEventListener('click', () => {
-                    if (video.paused) {
-                        video.play();
-                    } else {
-                        video.pause();
-                    }
-                });
-            }
-        });
-
-        // Image gallery for multiple images
-        const imageContainers = document.querySelectorAll('.multiple-images');
-        imageContainers.forEach(container => {
-            const images = container.querySelectorAll('.news-image');
-            if (images.length > 1) {
-                container.classList.add('gallery-' + images.length);
-            }
-        });
-    }
-
-    setupInfiniteScroll() {
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting && !this.isLoading) {
-                    this.loadTweets();
-                }
-            });
-        }, { threshold: 0.1 });
-
-        const loadMoreBtn = document.getElementById('loadMoreBtn');
-        if (loadMoreBtn) {
-            observer.observe(loadMoreBtn);
+            this.updatePlayPauseButton(true);
         }
     }
 
-    setupEventListeners() {
-        const loadMoreBtn = document.getElementById('loadMoreBtn');
-        if (loadMoreBtn) {
-            loadMoreBtn.addEventListener('click', () => this.loadTweets());
+    pauseVideo() {
+        if (this.newsVideo) {
+            this.newsVideo.pause();
+            this.updatePlayPauseButton(false);
         }
     }
 
-    toggleLike(btn) {
-        btn.classList.toggle('active');
-        const count = btn.querySelector('.count');
-        const current = parseInt(count.textContent) || 0;
-        count.textContent = this.formatNumber(btn.classList.contains('active') ? current + 1 : current - 1);
-    }
-
-    toggleRetweet(btn) {
-        btn.classList.toggle('active');
-    }
-
-    shareTweet(tweetId) {
-        if (navigator.share) {
-            navigator.share({
-                title: 'BuzzHaber',
-                text: 'Haberi paylaş!',
-                url: window.location.href
-            });
+    togglePlayPause() {
+        if (this.newsVideo.paused) {
+            this.playVideo();
         } else {
-            // Copy to clipboard
-            navigator.clipboard.writeText(window.location.href);
-            alert('Link kopyalandı!');
+            this.pauseVideo();
         }
     }
 
-    showLoader(show) {
-        const loader = document.getElementById('loader');
-        const loadMoreBtn = document.getElementById('loadMoreBtn');
-
-        if (loader) loader.style.display = show ? 'block' : 'none';
-        if (loadMoreBtn) loadMoreBtn.style.display = show ? 'none' : 'flex';
+    toggleMute() {
+        if (this.newsVideo) {
+            this.newsVideo.muted = !this.newsVideo.muted;
+            this.updateMuteButton();
+        }
     }
 
-    showEndMessage() {
-        const container = document.querySelector('.load-more-container');
-        if (container) {
-            container.innerHTML = `
-                <div class="end-message">
-                    <p>🎉 Tüm haberleri gördünüz!</p>
-                    <small>Daha fazla haber için sonra tekrar kontrol edin.</small>
-                </div>
-            `;
+    updatePlayPauseButton(isPlaying) {
+        const iconPlay = this.playPauseBtn?.querySelector('.icon-play');
+        const iconPause = this.playPauseBtn?.querySelector('.icon-pause');
+
+        if (iconPlay && iconPause) {
+            iconPlay.style.display = isPlaying ? 'none' : 'block';
+            iconPause.style.display = isPlaying ? 'block' : 'none';
         }
+    }
+
+    updateMuteButton() {
+        const iconMuted = this.muteBtn?.querySelector('.icon-muted');
+        const iconUnmuted = this.muteBtn?.querySelector('.icon-unmuted');
+
+        if (iconMuted && iconUnmuted) {
+            iconMuted.style.display = this.newsVideo.muted ? 'block' : 'none';
+            iconUnmuted.style.display = this.newsVideo.muted ? 'none' : 'block';
+        }
+    }
+
+    showLoading() {
+        this.loadingState.style.display = 'flex';
+        this.newsContent.style.display = 'none';
+        this.errorState.style.display = 'none';
+        this.nextBtn.disabled = true;
+    }
+
+    hideLoading() {
+        this.loadingState.style.display = 'none';
+    }
+
+    showError() {
+        this.loadingState.style.display = 'none';
+        this.newsContent.style.display = 'none';
+        this.errorState.style.display = 'flex';
+        this.nextBtn.disabled = true;
     }
 }
 
 // Global app instance
 let app;
 document.addEventListener('DOMContentLoaded', () => {
-    app = new BuzzNewsApp();
+    app = new SeksenSaniyeApp();
 });
