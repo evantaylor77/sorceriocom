@@ -1,4 +1,9 @@
 {
   "buildCommand": "echo 'No build needed'",
-  "outputDirectory": "./"
+  "outputDirectory": "./",
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "nodejs24.x"
+    }
+  }
 }
