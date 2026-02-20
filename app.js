@@ -181,11 +181,6 @@ class SeksenSaniyeApp {
         this.videoControls.style.display = 'none';
 
         if (news.hasVideo || news.video) {
-            if (news.videoUrl) {
-                this.playDirectVideo(news.videoUrl);
-                return;
-            }
-
             const tweetId = news.id;
             if (tweetId) {
                 const proxyUrl = `/api/video/${tweetId}`;
