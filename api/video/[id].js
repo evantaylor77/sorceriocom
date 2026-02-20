@@ -71,51 +71,47 @@ export default async function handler(req, res) {
 }
 
 async function fetchTwitterVideoUrl(tweetId) {
-    const tweetUrl = `https://x.com/BuzzHaber/status/${tweetId}`;
-
-    const response = await fetch(tweetUrl, {
-        headers: {
-            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        }
-    });
-
-    if (!response.ok) return null;
-
-    const html = await response.text();
-
-    const patterns = [
-        /https:\/\/video\.twimg\.com\/[^"'\s<>]+\.mp4[^"'\s<>]*/g,
-        /https:\/\/video\.twimg\.com\/[^"'\s<>]+/g,
-    ];
-
-    for (const pattern of patterns) {
-        const matches = html.match(pattern);
-        if (matches && matches.length > 0) {
-            let url = matches[0].split(/["'<>\s]/)[0];
-            if (url.includes('?')) {
-                url = url.split('?')[0];
+    try {
+        const syndicationUrl = `https://syndication.twitter.com/tweet-result?id=${tweetId}&token=0`;
+        
+        const response = await fetch(syndicationUrl, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (compatible; VideoFetcher/1.0)',
             }
-            if (url.includes('.mp4')) {
-                return url;
+        });
+
+        if (!response.ok) return null;
+
+        const data = await response.json();
+        
+        if (data.video_info?.variants) {
+            const mp4Variants = data.video_info.variants.filter(v => 
+                v.content_type === 'video/mp4' || v.url?.includes('.mp4')
+            );
+            
+            if (mp4Variants.length > 0) {
+                mp4Variants.sort((a, b) => {
+                    const sizeA = a.bitrate || 0;
+                    const sizeB = b.bitrate || 0;
+                    return sizeB - sizeA;
+                });
+                return mp4Variants[0].url;
             }
         }
+
+        const jsonStr = JSON.stringify(data);
+        const mp4Matches = jsonStr.match(/https:\/\/video\.twimg\.com\/[^"]+\.mp4[^"]*/g);
+        
+        if (mp4Matches && mp4Matches.length > 0) {
+            const highResUrl = mp4Matches.find(url => url.includes('720x') || url.includes('1080x'));
+            return highResUrl || mp4Matches[0];
+        }
+
+        return null;
+    } catch (error) {
+        console.error('Syndication API error:', error.message);
+        return null;
     }
-
-    const variantsMatch = html.match(/"variants"\s*:\s*\[([^\]]+)\]/);
-    if (variantsMatch) {
-        const urlMatches = variantsMatch[1].match(/"url"\s*:\s*"([^"]+)"/g);
-        if (urlMatches) {
-            for (const um of urlMatches) {
-                const url = um.match(/"url"\s*:\s*"([^"]+)"/)?.[1]?.replace(/\\\//g, '/');
-                if (url && url.includes('.mp4')) {
-                    return url;
-                }
-            }
-        }
-    }
-
-    return null;
 }
 
 async function proxyVideo(videoUrl, res) {
