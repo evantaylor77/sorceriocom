@@ -181,27 +181,31 @@ class SeksenSaniyeApp {
         this.videoControls.style.display = 'none';
 
         if (news.hasVideo) {
-            // Check for local video URL first
             const videoMedia = news.media?.find(m => m.type === 'video');
 
             if (videoMedia && videoMedia.url) {
                 let videoUrl = videoMedia.url;
-                // Fix path for local development (Python HTTP server doesn't have /videos/ rewrite)
                 if (videoUrl.startsWith('/videos/')) {
                     videoUrl = '/data/videos/' + videoUrl.split('/').pop();
                 }
                 if (videoUrl.startsWith('/videos/') || videoUrl.startsWith('/data/videos/')) {
-                    // Local video - play directly
                     this.newsVideo.style.display = 'block';
                     this.videoControls.style.display = 'flex';
                     this.newsVideo.src = videoUrl;
                     this.videoContainer.style.display = 'block';
+                    
+                    this.newsVideo.onerror = () => {
+                        console.log('Local video failed, falling back to Twitter embed');
+                        this.newsVideo.style.display = 'none';
+                        this.videoControls.style.display = 'none';
+                        const tweetUrl = `https://x.com/BuzzHaber/status/${news.id}`;
+                        this.displayTwitterEmbedFallback(tweetUrl);
+                    };
                     this.playVideo();
                     return;
                 }
                 
                 if (videoMedia.url.startsWith('http') && !videoMedia.url.startsWith('blob:')) {
-                    // Direct HTTP video URL
                     this.newsVideo.style.display = 'block';
                     this.videoControls.style.display = 'flex';
                     this.newsVideo.src = videoMedia.url;
@@ -211,10 +215,12 @@ class SeksenSaniyeApp {
                 }
             }
 
-            // Check for tweet_url as fallback
             const tweetUrlMedia = news.media?.find(m => m.type === 'tweet_url');
             if (tweetUrlMedia) {
                 this.loadVideoFromTweetUrl(tweetUrlMedia.url);
+            } else if (news.id) {
+                const tweetUrl = `https://x.com/BuzzHaber/status/${news.id}`;
+                this.displayTwitterEmbedFallback(tweetUrl);
             } else {
                 this.videoContainer.style.display = 'none';
             }
