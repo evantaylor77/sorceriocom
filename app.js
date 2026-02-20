@@ -123,11 +123,11 @@ class SeksenSaniyeApp {
                 data = await response.json();
             }
 
-            if (data && data.length > 0) {
-                this.newsData = data;
+            const tweets = data.tweets || data;
+            if (tweets && tweets.length > 0) {
+                this.newsData = tweets;
                 this.currentNewsIndex = 0;
 
-                // Update total count
                 if (this.totalNewsEl) {
                     this.totalNewsEl.textContent = this.newsData.length;
                 }
