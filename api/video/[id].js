@@ -118,18 +118,26 @@ async function proxyVideo(videoUrl, res) {
     try {
         const response = await fetch(videoUrl, {
             headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': '*/*',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Referer': 'https://x.com/',
             }
         });
 
         if (!response.ok) {
-            return res.status(response.status).json({ error: 'Failed to fetch video' });
+            console.error('Video fetch failed:', response.status, videoUrl);
+            return res.status(response.status).json({ 
+                error: 'Failed to fetch video',
+                directUrl: videoUrl 
+            });
         }
 
         const contentType = response.headers.get('content-type') || 'video/mp4';
         const contentLength = response.headers.get('content-length');
 
         res.setHeader('Content-Type', contentType);
+        res.setHeader('Access-Control-Allow-Origin', '*');
         if (contentLength) {
             res.setHeader('Content-Length', contentLength);
         }
@@ -137,6 +145,10 @@ async function proxyVideo(videoUrl, res) {
         res.status(200);
         return response.body.pipe(res);
     } catch (error) {
-        return res.status(500).json({ error: 'Proxy error' });
+        console.error('Proxy error:', error.message, videoUrl);
+        return res.status(500).json({ 
+            error: 'Proxy error',
+            directUrl: videoUrl 
+        });
     }
 }
