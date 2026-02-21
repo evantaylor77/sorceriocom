@@ -85,26 +85,21 @@ async function fetchTwitterVideoUrl(tweetId) {
 
         const data = await response.json();
         
+        const jsonStr = JSON.stringify(data);
+        const mp4Matches = jsonStr.match(/https:\/\/video\.twimg\.com\/[^"]+\.mp4[^"]*/g);
+
         if (data.video_info?.variants) {
-            const mp4Variants = data.video_info.variants.filter(v => 
+            const mp4Variants = data.video_info.variants.filter(v =>
                 v.content_type === 'video/mp4' || v.url?.includes('.mp4')
             );
-            
             if (mp4Variants.length > 0) {
-                mp4Variants.sort((a, b) => {
-                    const sizeA = a.bitrate || 0;
-                    const sizeB = b.bitrate || 0;
-                    return sizeB - sizeA;
-                });
+                mp4Variants.sort((a, b) => (b.bitrate || 0) - (a.bitrate || 0));
                 return mp4Variants[0].url;
             }
         }
 
-        const jsonStr = JSON.stringify(data);
-        const mp4Matches = jsonStr.match(/https:\/\/video\.twimg\.com\/[^"]+\.mp4[^"]*/g);
-        
         if (mp4Matches && mp4Matches.length > 0) {
-            const highResUrl = mp4Matches.find(url => url.includes('720x') || url.includes('1080x'));
+            const highResUrl = mp4Matches.find(url => url.includes('1080x') || url.includes('720x'));
             return highResUrl || mp4Matches[0];
         }
 

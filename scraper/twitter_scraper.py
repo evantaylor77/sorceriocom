@@ -1,6 +1,6 @@
 """
 60Saniye Twitter Scraper
-Scrapes video tweets from @buzzhaber profile for the 60Saniye news platform.
+Scrapes video tweets from profiles listed in target_profiles.txt for the 60Saniye news platform.
 """
 
 import json
@@ -27,23 +27,26 @@ logger = logging.getLogger(__name__)
 
 
 class TwitterScraper:
-    """Scraper for @buzzhaber Twitter profile."""
+    """Scraper for Twitter profiles listed in target_profiles.txt."""
 
     TIMEOUT = 30
     TARGET_TWEETS = 20
     TARGET_VIDEO_TWEETS = 20
     MAX_SCROLL_ATTEMPTS = 15
+    MAX_TOTAL_TWEETS = 500
 
     def __init__(self, headless: bool = True, data_dir: Optional[Path] = None):
         """Initialize scraper.
 
         Args:
             headless: Run browser in headless mode
-            data_dir: Directory to save scraped data
+            data_dir: Directory to save scraped data (default: repo root/data)
         """
         self.headless = headless
-        self.data_dir = data_dir or Path("data")
+        repo_root = Path(__file__).resolve().parent.parent
+        self.data_dir = data_dir or (repo_root / "data")
         self.data_dir.mkdir(parents=True, exist_ok=True)
+        self.profiles_file = repo_root / "target_profiles.txt"
 
         self.driver: Optional[uc.Chrome] = None
         self.wait: Optional[WebDriverWait] = None
@@ -81,6 +84,27 @@ class TwitterScraper:
         except Exception as e:
             logger.error(f"Failed to initialize driver: {e}")
             return False
+
+    def _load_profiles(self) -> List[str]:
+        """Load profile usernames from target_profiles.txt.
+
+        Returns:
+            List of profile usernames (without @)
+        """
+        try:
+            if not self.profiles_file.exists():
+                logger.warning(f"target_profiles.txt not found at {self.profiles_file}, using default")
+                return ["buzzhaber"]
+            lines = self.profiles_file.read_text(encoding="utf-8").strip().splitlines()
+            profiles = [
+                line.strip().lstrip("@")
+                for line in lines
+                if line.strip() and not line.strip().startswith("#")
+            ]
+            return profiles if profiles else ["buzzhaber"]
+        except Exception as e:
+            logger.error(f"Error loading profiles: {e}")
+            return ["buzzhaber"]
 
     def _close_driver(self):
         """Close the Chrome driver."""
@@ -389,30 +413,39 @@ class TwitterScraper:
             logger.error(f"Error scraping @{profile}: {e}")
             return []
 
+    def _load_existing_tweets(self, filename: str = "tweets.json") -> List[Dict]:
+        """Load existing tweets from JSON file."""
+        output_file = self.data_dir / filename
+        try:
+            if output_file.exists():
+                return json.loads(output_file.read_text(encoding="utf-8"))
+        except Exception as e:
+            logger.warning(f"Could not load existing tweets: {e}")
+        return []
+
     def save_tweets(self, tweets: List[Dict], filename: str = "tweets.json"):
         """Save tweets to JSON file.
-        Replaces old tweets with new ones (fresh scrape).
+        Merges with existing tweets, dedupes by id, sorts by time, applies 500 limit.
 
         Args:
-            tweets: List of tweet dictionaries
+            tweets: List of new tweet dictionaries
             filename: Output filename
         """
-        if not tweets:
-            logger.warning("No tweets to save")
-            return
-
         output_file = self.data_dir / filename
 
         try:
-            # Save only new tweets (fresh scrape each time)
+            existing = self._load_existing_tweets(filename)
+            by_id = {t.get("id"): t for t in existing if t.get("id")}
+            for t in tweets:
+                if t.get("id"):
+                    by_id[t["id"]] = t
+            merged = list(by_id.values())
+            merged.sort(key=lambda x: x.get("time", ""), reverse=True)
+            merged = merged[: self.MAX_TOTAL_TWEETS]
             with open(output_file, "w", encoding="utf-8") as f:
-                json.dump(tweets, f, ensure_ascii=False, indent=2)
-
-            logger.info(f"Saved {len(tweets)} video tweets to {output_file}")
-
-            # Clean up old video files that are no longer referenced
-            self._cleanup_old_videos(tweets)
-
+                json.dump(merged, f, ensure_ascii=False, indent=2)
+            logger.info(f"Saved {len(merged)} tweets to {output_file} (merged, deduped, limited to {self.MAX_TOTAL_TWEETS})")
+            self._cleanup_old_videos(merged)
         except Exception as e:
             logger.error(f"Error saving tweets: {e}")
 
@@ -442,22 +475,26 @@ class TwitterScraper:
         except Exception as e:
             logger.error(f"Error cleaning up old videos: {e}")
 
-    def run(self, profile: str = "buzzhaber"):
-        """Run the scraper for a profile.
+    def run(self, profile: Optional[str] = None):
+        """Run the scraper for profiles from target_profiles.txt or a single profile.
 
         Args:
-            profile: Username to scrape (default: buzzhaber)
+            profile: Optional single username to scrape; if None, uses target_profiles.txt
         """
         try:
-            tweets = self.scrape_profile(profile)
+            profiles = [profile] if profile else self._load_profiles()
+            all_tweets: List[Dict] = []
 
-            if tweets:
-                self.save_tweets(tweets)
+            for p in profiles:
+                tweets = self.scrape_profile(p)
+                all_tweets.extend(tweets)
+                logger.info(f"Scraped {len(tweets)} video tweets from @{p}")
 
-                # Log summary
+            if all_tweets:
+                self.save_tweets(all_tweets)
                 video_downloaded = sum(
                     1
-                    for t in tweets
+                    for t in all_tweets
                     if any(
                         m.get("type") == "video"
                         and m.get("url", "").startswith("/videos/")
@@ -468,9 +505,9 @@ class TwitterScraper:
 ╔════════════════════════════════════════╗
 ║   60Saniye Scraper Results             ║
 ╠════════════════════════════════════════╣
-║  Total tweets:     {len(tweets):<18} ║
+║  Total tweets:     {len(all_tweets):<18} ║
 ║  Videos downloaded: {video_downloaded:<17} ║
-║  Profile:          @{profile:<17} ║
+║  Profiles:         {len(profiles):<18} ║
 ╚════════════════════════════════════════╝
                 """)
             else:
@@ -484,9 +521,9 @@ def main():
     """Main entry point."""
     import sys
 
-    profile = sys.argv[1] if len(sys.argv) > 1 else "buzzhaber"
+    profile = sys.argv[1] if len(sys.argv) > 1 else None
 
-    scraper = TwitterScraper(headless=False)
+    scraper = TwitterScraper(headless=True)
     scraper.run(profile)
 
 

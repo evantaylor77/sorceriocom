@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 const LOCAL_TWEETS_PATH = path.join(process.cwd(), 'data/tweets.json');
-const TARGET_PROFILE = 'buzzhaber';
+const MAX_LIMIT = 500;
 
 const videoCache = new Map();
 
@@ -21,17 +21,20 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { limit = 20, tweetUrl, tweetId } = req.query;
+        const { limit = 20, tweetUrl, tweetId, profile } = req.query;
 
         if (tweetUrl || tweetId) {
-            const url = tweetUrl || `https://x.com/${TARGET_PROFILE}/status/${tweetId}`;
+            const url = tweetUrl || `https://x.com/i/status/${tweetId}`;
             return await handleVideoProxy(url, res);
         }
 
         let tweets = await loadTweetsFromLocal();
-        tweets = tweets.filter(t => t.profile === TARGET_PROFILE);
+        if (profile) {
+            tweets = tweets.filter(t => (t.profile || '').toLowerCase() === String(profile).toLowerCase());
+        }
         tweets.sort((a, b) => new Date(b.time) - new Date(a.time));
-        tweets = tweets.slice(0, parseInt(limit));
+        const safeLimit = Math.min(Math.max(1, parseInt(limit, 10) || 20), MAX_LIMIT);
+        tweets = tweets.slice(0, safeLimit);
 
         const formattedTweets = await Promise.all(tweets.map(async (tweet) => {
             const videoMedia = tweet.media?.find(m => m.type === 'video');
@@ -44,15 +47,16 @@ export default async function handler(req, res) {
             } else if (videoMedia?.url?.startsWith('http')) {
                 videoUrl = videoMedia.url;
             } else if (tweetUrlMedia?.url || tweet.id) {
-                const url = tweetUrlMedia?.url || `https://x.com/${TARGET_PROFILE}/status/${tweet.id}`;
+                const url = tweetUrlMedia?.url || `https://x.com/i/status/${tweet.id}`;
                 videoUrl = await fetchVideoUrl(url, tweet.id);
             }
 
+            const tweetProfile = tweet.profile || 'buzzhaber';
             return {
                 id: tweet.id,
                 text: tweet.text,
                 author: '60Saniye Haber',
-                username: `@${TARGET_PROFILE}`,
+                username: `@${tweetProfile}`,
                 time: formatTime(tweet.time),
                 media: tweet.media || [],
                 hasVideo: tweet.video || !!videoUrl,

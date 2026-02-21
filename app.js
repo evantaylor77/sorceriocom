@@ -111,7 +111,7 @@ class SeksenSaniyeApp {
             // Try API first, fall back to direct JSON
             let data;
             try {
-                const response = await fetch('/api/scrape-tweets?limit=50');
+                const response = await fetch('/api/scrape-tweets?limit=500');
                 if (response.ok) {
                     data = await response.json();
                 } else {
@@ -184,7 +184,9 @@ class SeksenSaniyeApp {
             const tweetId = news.id;
             if (tweetId) {
                 const proxyUrl = `/api/video/${tweetId}`;
-                this.playProxyVideo(proxyUrl, tweetId);
+                const profile = (news.profile || news.username || 'buzzhaber').replace(/^@/, '');
+                const embedFallbackUrl = `https://x.com/${profile}/status/${tweetId}`;
+                this.playProxyVideo(proxyUrl, tweetId, embedFallbackUrl);
                 return;
             }
 
@@ -199,17 +201,18 @@ class SeksenSaniyeApp {
         }
     }
 
-    playProxyVideo(proxyUrl, tweetId) {
+    playProxyVideo(proxyUrl, tweetId, embedFallbackUrl) {
         this.newsVideo.style.display = 'block';
         this.videoControls.style.display = 'flex';
         this.newsVideo.src = proxyUrl;
         this.videoContainer.style.display = 'block';
 
+        const fallback = embedFallbackUrl || `https://x.com/buzzhaber/status/${tweetId}`;
         this.newsVideo.onerror = () => {
             console.log('Proxy video failed, trying Twitter embed');
             this.newsVideo.style.display = 'none';
             this.videoControls.style.display = 'none';
-            this.displayTwitterEmbedFallback(`https://x.com/BuzzHaber/status/${tweetId}`);
+            this.displayTwitterEmbedFallback(fallback);
         };
 
         this.playVideo();
@@ -224,37 +227,28 @@ class SeksenSaniyeApp {
     }
 
     async loadVideoFromTweetUrl(tweetUrl) {
-        // Show loading state
+        const tweetIdMatch = tweetUrl.match(/status\/(\d+)/);
+        const tweetId = tweetIdMatch ? tweetIdMatch[1] : null;
+
+        if (tweetId) {
+            const proxyUrl = `/api/video/${tweetId}`;
+            this.newsVideo.style.display = 'block';
+            this.videoControls.style.display = 'flex';
+            this.videoContainer.style.display = 'block';
+            this.embedContainer.innerHTML = '';
+            this.newsVideo.src = proxyUrl;
+            this.newsVideo.onerror = () => {
+                this.newsVideo.style.display = 'none';
+                this.videoControls.style.display = 'none';
+                this.displayTwitterEmbedFallback(tweetUrl);
+            };
+            this.playVideo();
+            return;
+        }
+
         this.videoContainer.style.display = 'block';
         this.embedContainer.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">Video yükleniyor...</p>';
-
-        try {
-            // Try to get direct video URL from our proxy API
-            const response = await fetch(`/api/scrape-tweets?tweetUrl=${encodeURIComponent(tweetUrl)}`);
-
-            if (response.ok) {
-                const data = await response.json();
-
-                if (data.videoUrl) {
-                    // We got a direct video URL - play it
-                    this.embedContainer.innerHTML = '';
-                    this.newsVideo.style.display = 'block';
-                    this.videoControls.style.display = 'flex';
-                    this.newsVideo.src = data.videoUrl;
-                    this.playVideo();
-                } else {
-                    // No video URL found - use Twitter embed fallback
-                    this.displayTwitterEmbedFallback(tweetUrl);
-                }
-            } else {
-                // API failed - use Twitter embed fallback
-                this.displayTwitterEmbedFallback(tweetUrl);
-            }
-        } catch (error) {
-            console.error('Video proxy error:', error);
-            // On error, use Twitter embed fallback
-            this.displayTwitterEmbedFallback(tweetUrl);
-        }
+        this.displayTwitterEmbedFallback(tweetUrl);
     }
 
     displayTwitterEmbedFallback(tweetUrl) {

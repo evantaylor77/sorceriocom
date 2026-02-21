@@ -2,7 +2,7 @@ name: Scrape Twitter Videos
 
 on:
   schedule:
-    - cron: '0 */2 * * *'
+    - cron: '0 * * * *'
   workflow_dispatch:
 
 jobs:
@@ -34,7 +34,7 @@ jobs:
       - name: Run scraper
         run: |
           cd scraper
-          python twitter_scraper.py buzzhaber
+          python twitter_scraper.py
         env:
           PYTHONUNBUFFERED: 1
 
@@ -53,7 +53,7 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git commit -m "Update videos from @buzzhaber [skip ci]"
+          git commit -m "Update videos from scraped profiles [skip ci]"
           git push
 
       - name: Summary
