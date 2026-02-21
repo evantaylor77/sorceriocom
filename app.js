@@ -155,6 +155,12 @@ class SeksenSaniyeApp {
             this.currentIndexEl.textContent = index + 1;
         }
 
+        // Update author/profile info
+        const authorEl = document.getElementById('newsAuthor');
+        const usernameEl = document.getElementById('newsUsername');
+        if (authorEl) authorEl.textContent = news.author || '60Saniye Haber';
+        if (usernameEl) usernameEl.textContent = news.username || `@${news.profile || 'buzzhaber'}`;
+
         // Update text content
         this.newsText.innerHTML = this.formatText(news.text);
         this.newsTime.textContent = news.time;
@@ -182,10 +188,16 @@ class SeksenSaniyeApp {
 
         if (news.hasVideo || news.video) {
             const tweetId = news.id;
+            const profile = (news.profile || news.username || 'buzzhaber').replace(/^@/, '');
+            const embedFallbackUrl = tweetId ? `https://x.com/${profile}/status/${tweetId}` : null;
+
+            if (news.videoUrl && news.videoUrl.startsWith('http')) {
+                this.playDirectVideo(news.videoUrl, embedFallbackUrl);
+                return;
+            }
+
             if (tweetId) {
                 const proxyUrl = `/api/video/${tweetId}`;
-                const profile = (news.profile || news.username || 'buzzhaber').replace(/^@/, '');
-                const embedFallbackUrl = `https://x.com/${profile}/status/${tweetId}`;
                 this.playProxyVideo(proxyUrl, tweetId, embedFallbackUrl);
                 return;
             }
@@ -218,11 +230,19 @@ class SeksenSaniyeApp {
         this.playVideo();
     }
 
-    playDirectVideo(videoUrl) {
+    playDirectVideo(videoUrl, embedFallbackUrl) {
         this.newsVideo.style.display = 'block';
         this.videoControls.style.display = 'flex';
         this.newsVideo.src = videoUrl;
         this.videoContainer.style.display = 'block';
+        if (embedFallbackUrl) {
+            this.newsVideo.onerror = () => {
+                console.log('Direct video failed, trying embed fallback');
+                this.newsVideo.style.display = 'none';
+                this.videoControls.style.display = 'none';
+                this.displayTwitterEmbedFallback(embedFallbackUrl);
+            };
+        }
         this.playVideo();
     }
 
