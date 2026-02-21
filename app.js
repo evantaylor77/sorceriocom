@@ -191,11 +191,6 @@ class SeksenSaniyeApp {
             const profile = (news.profile || news.username || 'buzzhaber').replace(/^@/, '');
             const embedFallbackUrl = tweetId ? `https://x.com/${profile}/status/${tweetId}` : null;
 
-            if (news.videoUrl && news.videoUrl.startsWith('http')) {
-                this.playDirectVideo(news.videoUrl, embedFallbackUrl);
-                return;
-            }
-
             if (tweetId) {
                 const proxyUrl = `/api/video/${tweetId}`;
                 this.playProxyVideo(proxyUrl, tweetId, embedFallbackUrl);

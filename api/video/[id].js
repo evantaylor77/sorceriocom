@@ -51,7 +51,7 @@ export default async function handler(req, res) {
 
     const cachedUrl = videoCache.get(tweetId);
     if (cachedUrl) {
-        return proxyVideo(cachedUrl, res, req);
+        return res.redirect(302, cachedUrl);
     }
 
     try {
@@ -59,15 +59,37 @@ export default async function handler(req, res) {
 
         if (videoUrl) {
             videoCache.set(tweetId, videoUrl);
-            return proxyVideo(videoUrl, res, req);
+            if (videoCache.size > 200) {
+                const firstKey = videoCache.keys().next().value;
+                videoCache.delete(firstKey);
+            }
+            return res.redirect(302, videoUrl);
         }
     } catch (error) {
         console.error('Video fetch error:', error.message);
     }
 
+    // Also check tweets.json for stored video URLs
+    try {
+        const tweetsPath = path.join(process.cwd(), 'data/tweets.json');
+        if (fs.existsSync(tweetsPath)) {
+            const tweets = JSON.parse(fs.readFileSync(tweetsPath, 'utf8'));
+            const tweet = tweets.find(t => t.id === tweetId);
+            if (tweet) {
+                const videoMedia = tweet.media?.find(m => m.type === 'video' && m.url?.startsWith('http'));
+                if (videoMedia) {
+                    videoCache.set(tweetId, videoMedia.url);
+                    return res.redirect(302, videoMedia.url);
+                }
+            }
+        }
+    } catch (e) {
+        console.error('Tweets lookup error:', e.message);
+    }
+
     return res.status(404).json({ 
         error: 'Video not found',
-        fallbackUrl: `https://x.com/BuzzHaber/status/${tweetId}`
+        fallbackUrl: `https://x.com/i/status/${tweetId}`
     });
 }
 
