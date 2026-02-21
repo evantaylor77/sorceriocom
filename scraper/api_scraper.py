@@ -199,6 +199,43 @@ def scrape_profile(driver, wait, profile: str) -> List[Dict]:
     return result
 
 
+def resolve_video_url(tweet_id: str) -> Optional[str]:
+    """Fetch direct video URL from syndication API for a tweet."""
+    try:
+        import requests as req
+        url = f"https://cdn.syndication.twimg.com/tweet-result?id={tweet_id}&token=0"
+        resp = req.get(url, timeout=10, headers={
+            "User-Agent": "Mozilla/5.0 (compatible; VideoFetcher/1.0)"
+        })
+        if resp.status_code != 200:
+            return None
+        data = resp.json()
+        # Try video_info.variants
+        variants = None
+        if "video" in data and "variants" in data["video"]:
+            variants = data["video"]["variants"]
+        elif "mediaDetails" in data:
+            for md in data.get("mediaDetails", []):
+                vi = md.get("video_info", {})
+                if "variants" in vi:
+                    variants = vi["variants"]
+                    break
+        if variants:
+            mp4s = [v for v in variants if v.get("content_type") == "video/mp4" or ".mp4" in v.get("url", "")]
+            if mp4s:
+                mp4s.sort(key=lambda v: v.get("bitrate", 0), reverse=True)
+                return mp4s[0]["url"]
+        # Regex fallback
+        import re
+        mp4_matches = re.findall(r'https://video\.twimg\.com/[^"]+\.mp4[^"]*', resp.text)
+        if mp4_matches:
+            high = next((u for u in mp4_matches if "720x" in u or "1080x" in u), None)
+            return high or mp4_matches[0]
+    except Exception as e:
+        logger.debug(f"resolve_video_url({tweet_id}): {e}")
+    return None
+
+
 def load_existing(data_dir: Path) -> List[Dict]:
     f = data_dir / "tweets.json"
     try:
@@ -251,6 +288,16 @@ def main():
                 time.sleep(random.uniform(2, 4))
 
         if all_tweets:
+            logger.info("Resolving video URLs via syndication API...")
+            resolved = 0
+            for tweet in all_tweets:
+                if tweet.get("video") and tweet.get("id"):
+                    vurl = resolve_video_url(tweet["id"])
+                    if vurl:
+                        tweet["video_url"] = vurl
+                        resolved += 1
+                    time.sleep(random.uniform(0.3, 0.8))
+            logger.info(f"Resolved {resolved}/{len(all_tweets)} video URLs")
             save_tweets(data_dir, all_tweets)
             logger.info(f"Done: {len(all_tweets)} video tweets from {len(profiles)} profiles")
         else:

@@ -41,8 +41,10 @@ export default async function handler(req, res) {
             const tweetUrlMedia = tweet.media?.find(m => m.type === 'tweet_url');
             
             let videoUrl = null;
-            
-            if (videoMedia?.url?.startsWith('/videos/')) {
+
+            if (tweet.video_url) {
+                videoUrl = tweet.video_url;
+            } else if (videoMedia?.url?.startsWith('/videos/')) {
                 videoUrl = videoMedia.url;
             } else if (videoMedia?.url?.startsWith('http')) {
                 videoUrl = videoMedia.url;

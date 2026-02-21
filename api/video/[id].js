@@ -21,65 +21,29 @@ export default async function handler(req, res) {
     const ext = path.extname(id);
     const tweetId = ext ? id.replace(ext, '') : id;
 
+    // 1. Local file
     const localPath = path.join(videosDir, `${tweetId}.mp4`);
     if (fs.existsSync(localPath)) {
-        const stat = fs.statSync(localPath);
-        const fileSize = stat.size;
-        const range = req.headers.range;
-
-        res.setHeader('Content-Type', 'video/mp4');
-        res.setHeader('Accept-Ranges', 'bytes');
-
-        if (range) {
-            const parts = range.replace(/bytes=/, '').split('-');
-            const start = parseInt(parts[0], 10);
-            const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
-            const chunkSize = end - start + 1;
-
-            res.setHeader('Content-Range', `bytes ${start}-${end}/${fileSize}`);
-            res.setHeader('Content-Length', chunkSize);
-            res.status(206);
-
-            const stream = fs.createReadStream(localPath, { start, end });
-            return stream.pipe(res);
-        }
-
-        res.setHeader('Content-Length', fileSize);
-        res.status(200);
-        return fs.createReadStream(localPath).pipe(res);
+        return serveLocalVideo(localPath, req, res);
     }
 
+    // 2. In-memory cache
     const cachedUrl = videoCache.get(tweetId);
     if (cachedUrl) {
-        return res.redirect(302, cachedUrl);
+        return proxyVideo(cachedUrl, res, req);
     }
 
-    try {
-        const videoUrl = await fetchTwitterVideoUrl(tweetId);
-
-        if (videoUrl) {
-            videoCache.set(tweetId, videoUrl);
-            if (videoCache.size > 200) {
-                const firstKey = videoCache.keys().next().value;
-                videoCache.delete(firstKey);
-            }
-            return res.redirect(302, videoUrl);
-        }
-    } catch (error) {
-        console.error('Video fetch error:', error.message);
-    }
-
-    // Also check tweets.json for stored video URLs
+    // 3. Pre-resolved URL from tweets.json (most reliable, no API call needed)
     try {
         const tweetsPath = path.join(process.cwd(), 'data/tweets.json');
         if (fs.existsSync(tweetsPath)) {
             const tweets = JSON.parse(fs.readFileSync(tweetsPath, 'utf8'));
             const tweet = tweets.find(t => t.id === tweetId);
             if (tweet) {
-                const videoMedia = tweet.media?.find(m => m.type === 'video' && m.url?.startsWith('http'));
-                if (videoMedia) {
-                    videoCache.set(tweetId, videoMedia.url);
-                    return res.redirect(302, videoMedia.url);
+                const storedUrl = tweet.video_url;
+                if (storedUrl && storedUrl.startsWith('http')) {
+                    videoCache.set(tweetId, storedUrl);
+                    return proxyVideo(storedUrl, res, req);
                 }
             }
         }
@@ -87,42 +51,81 @@ export default async function handler(req, res) {
         console.error('Tweets lookup error:', e.message);
     }
 
-    return res.status(404).json({ 
+    // 4. Syndication API fallback (may be rate-limited)
+    try {
+        const videoUrl = await fetchTwitterVideoUrl(tweetId);
+        if (videoUrl) {
+            videoCache.set(tweetId, videoUrl);
+            if (videoCache.size > 200) {
+                const firstKey = videoCache.keys().next().value;
+                videoCache.delete(firstKey);
+            }
+            return proxyVideo(videoUrl, res, req);
+        }
+    } catch (error) {
+        console.error('Video fetch error:', error.message);
+    }
+
+    return res.status(404).json({
         error: 'Video not found',
         fallbackUrl: `https://x.com/i/status/${tweetId}`
     });
 }
 
+function serveLocalVideo(localPath, req, res) {
+    const stat = fs.statSync(localPath);
+    const fileSize = stat.size;
+    const range = req.headers.range;
+
+    res.setHeader('Content-Type', 'video/mp4');
+    res.setHeader('Accept-Ranges', 'bytes');
+
+    if (range) {
+        const parts = range.replace(/bytes=/, '').split('-');
+        const start = parseInt(parts[0], 10);
+        const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+        const chunkSize = end - start + 1;
+
+        res.setHeader('Content-Range', `bytes ${start}-${end}/${fileSize}`);
+        res.setHeader('Content-Length', chunkSize);
+        res.status(206);
+
+        const stream = fs.createReadStream(localPath, { start, end });
+        return stream.pipe(res);
+    }
+
+    res.setHeader('Content-Length', fileSize);
+    res.status(200);
+    return fs.createReadStream(localPath).pipe(res);
+}
+
 async function fetchTwitterVideoUrl(tweetId) {
     try {
-        const syndicationUrl = `https://syndication.twitter.com/tweet-result?id=${tweetId}&token=0`;
-        
-        const response = await fetch(syndicationUrl, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (compatible; VideoFetcher/1.0)',
-            }
+        const url = `https://cdn.syndication.twimg.com/tweet-result?id=${tweetId}&token=0`;
+        const response = await fetch(url, {
+            headers: { 'User-Agent': 'Mozilla/5.0 (compatible; VideoFetcher/1.0)' }
         });
-
         if (!response.ok) return null;
-
         const data = await response.json();
-        
-        const jsonStr = JSON.stringify(data);
-        const mp4Matches = jsonStr.match(/https:\/\/video\.twimg\.com\/[^"]+\.mp4[^"]*/g);
 
-        if (data.video_info?.variants) {
-            const mp4Variants = data.video_info.variants.filter(v =>
-                v.content_type === 'video/mp4' || v.url?.includes('.mp4')
-            );
-            if (mp4Variants.length > 0) {
-                mp4Variants.sort((a, b) => (b.bitrate || 0) - (a.bitrate || 0));
-                return mp4Variants[0].url;
+        // Check mediaDetails array (common structure)
+        if (data.mediaDetails) {
+            for (const md of data.mediaDetails) {
+                const variants = md.video_info?.variants;
+                if (variants) {
+                    const mp4s = variants
+                        .filter(v => v.content_type === 'video/mp4')
+                        .sort((a, b) => (b.bitrate || 0) - (a.bitrate || 0));
+                    if (mp4s.length > 0) return mp4s[0].url;
+                }
             }
         }
 
+        // Regex fallback on full JSON
+        const jsonStr = JSON.stringify(data);
+        const mp4Matches = jsonStr.match(/https:\/\/video\.twimg\.com\/[^"]+\.mp4[^"]*/g);
         if (mp4Matches && mp4Matches.length > 0) {
-            const highResUrl = mp4Matches.find(url => url.includes('1080x') || url.includes('720x'));
-            return highResUrl || mp4Matches[0];
+            return mp4Matches.find(u => u.includes('720x') || u.includes('1080x')) || mp4Matches[0];
         }
 
         return null;
@@ -135,9 +138,8 @@ async function fetchTwitterVideoUrl(tweetId) {
 async function proxyVideo(videoUrl, res, req) {
     try {
         const headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
             'Accept': '*/*',
-            'Accept-Language': 'en-US,en;q=0.9',
             'Referer': 'https://x.com/',
             'Origin': 'https://x.com',
         };
@@ -149,10 +151,9 @@ async function proxyVideo(videoUrl, res, req) {
         const response = await fetch(videoUrl, { headers });
 
         if (!response.ok) {
-            console.error('Video fetch failed:', response.status, videoUrl);
-            return res.status(response.status).json({ 
+            return res.status(response.status).json({
                 error: 'Failed to fetch video',
-                directUrl: videoUrl 
+                directUrl: videoUrl
             });
         }
 
@@ -163,10 +164,8 @@ async function proxyVideo(videoUrl, res, req) {
         res.setHeader('Content-Type', contentType);
         res.setHeader('Access-Control-Allow-Origin', '*');
         res.setHeader('Accept-Ranges', 'bytes');
-        
-        if (contentLength) {
-            res.setHeader('Content-Length', contentLength);
-        }
+
+        if (contentLength) res.setHeader('Content-Length', contentLength);
         if (contentRange) {
             res.setHeader('Content-Range', contentRange);
             res.status(206);
@@ -183,9 +182,9 @@ async function proxyVideo(videoUrl, res, req) {
         return res.end();
     } catch (error) {
         console.error('Proxy error:', error.message, videoUrl);
-        return res.status(500).json({ 
+        return res.status(500).json({
             error: 'Proxy error',
-            directUrl: videoUrl 
+            directUrl: videoUrl
         });
     }
 }
