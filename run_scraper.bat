@@ -1,19 +1,26 @@
 @echo off
-REM 60Saniye Scraper - Run Script
+cd /d "%~dp0"
 
-echo ========================================
-echo   60Saniye Twitter Scraper
-echo   Scraping @buzzhaber...
-echo ========================================
-echo.
+echo [%date% %time%] Starting 60Saniye scraper...
 
 cd scraper
-python twitter_scraper.py buzzhaber
+python api_scraper.py
+if %errorlevel% neq 0 (
+    echo [%date% %time%] Scraper failed with exit code %errorlevel%
+    exit /b %errorlevel%
+)
 
-echo.
-echo ========================================
-echo   Scraping complete!
-echo   Data saved to: data/tweets.json
-echo ========================================
+cd ..
 
-pause
+echo [%date% %time%] Checking for changes...
+git add data/tweets.json
+git diff --staged --quiet
+if %errorlevel% equ 0 (
+    echo [%date% %time%] No new data to push
+) else (
+    git commit -m "Update tweets [automated]"
+    git push origin main
+    echo [%date% %time%] Changes pushed to GitHub
+)
+
+echo [%date% %time%] Done!
