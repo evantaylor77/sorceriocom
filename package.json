@@ -1,0 +1,25 @@
+{
+  "name": "mcpmarket-landing",
+  "version": "1.0.0",
+  "description": "MCPMarket Landing Page - The Ultimate MCP Server Marketplace for Windows",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx serve -l 3000",
+    "build": "echo 'Static site - no build needed'",
+    "deploy": "vercel --prod"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "cursor",
+    "vscode",
+    "claude-code",
+    "marketplace",
+    "installer"
+  ],
+  "author": "MCPMarket",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.2.0"
+  }
+}

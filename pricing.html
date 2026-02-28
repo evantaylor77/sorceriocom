@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pricing - MCPMarket | Manage 22.167+ MCP Servers on Windows</title>
+  <meta name="description" content="Choose your plan - Plus ($10/mo) or Pro ($20/mo). Download now and start managing 22.167+ MCP servers on Windows.">
+  <style>
+    html { background: #07080f !important; color: #fff !important; }
+    body { background: #07080f !important; visibility: hidden; opacity: 0; transition: opacity .3s ease; }
+    body.loaded { visibility: visible; opacity: 1; }
+    .pricing { padding: 60px 0 40px; }
+    .pricing-toggle { display: flex; justify-content: center; margin: 8px 0 24px; }
+    .toggle-container {
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 12px;
+      padding: 4px;
+      display: inline-flex;
+      gap: 4px;
+    }
+    .toggle-btn {
+      border: none;
+      background: transparent;
+      color: #c5ceed;
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .toggle-btn.active { color: #081220; background: linear-gradient(100deg, #d4a82f, #9ac3ff); }
+    .discount-badge {
+      margin-left: 6px;
+      font-size: .72rem;
+      color: #0d1222;
+      background: #f8de87;
+      border-radius: 999px;
+      padding: 2px 7px;
+    }
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 24px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .pricing-card {
+      position: relative;
+      border-radius: 18px;
+      padding: 22px;
+      background: linear-gradient(165deg, rgba(18, 23, 40, .9), rgba(12, 15, 29, .92));
+      border: 1px solid rgba(255,255,255,.12);
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+    }
+    .card-header { display: grid; gap: 6px; }
+    .card-content { display: flex; flex-direction: column; flex: 1; }
+    .pricing-card.featured { border-color: rgba(212,168,47,.62); transform: translateY(-6px); }
+    .popular-badge {
+      position: absolute;
+      top: -11px;
+      left: 16px;
+      padding: 6px 10px;
+      font-size: .74rem;
+      border-radius: 999px;
+      background: linear-gradient(100deg, #9a7418, #f2cc6c);
+    }
+    .plan-name { font-size: 1.2rem; margin-bottom: 8px; }
+    .plan-description { color: #a6afcf; margin: 8px 0 16px; font-size: .95rem; }
+    .plan-price { display: flex; align-items: baseline; gap: 4px; margin-bottom: 8px; }
+    .currency { font-size: 1.2rem; color: #f2e1b2; }
+    .price { font-size: 2.3rem; font-weight: 800; letter-spacing: -.02em; }
+    .period { color: #f2e1b2; }
+    .feature-list { list-style: none; margin: 14px 0 20px; display: grid; gap: 9px; color: #dce5ff; }
+    .feature-list li { display: flex; align-items: center; gap: 9px; color: #c9d3f1; font-size: .92rem; }
+    .feature-list i { color: #34d399; }
+    .plan-button {
+      width: 100%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: auto;
+      text-decoration: none;
+    }
+    .plan-button.primary { background: linear-gradient(100deg, #d4a82f, #9ac3ff); }
+    .cta-section {
+      margin-top: 32px;
+      text-align: center;
+      padding: 40px 22px;
+      background: linear-gradient(120deg, rgba(110, 231, 255, 0.12), rgba(139, 92, 246, 0.18), rgba(8, 12, 25, 0.9));
+      border: 1px solid rgba(212, 168, 47, .25);
+      border-radius: 22px;
+    }
+    .cta-section h3 { margin-bottom: 12px; }
+    .cta-section p { color: #d5dcf4; max-width: 52ch; margin: 0 auto 20px; }
+    .cta-actions { display: flex; gap: 12px; justify-content: center; }
+    @media (max-width: 980px) { .pricing-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 640px) {
+      .plan-button { width: 100%; text-align: center; justify-content: center; }
+      .cta-actions { flex-direction: column; }
+      .pricing-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="landing.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-logo">
+        <div class="logo-icon">M</div>
+        <span>MCPMarket</span>
+      </div>
+      <div class="nav-menu">
+        <div class="nav-links">
+          <a href="index.html" class="nav-link">Home</a>
+          <a href="pricing.html" class="nav-link active">Pricing</a>
+          <a href="index.html#features" class="nav-link">Features</a>
+        </div>
+        <div class="nav-cta">
+          <a href="https://github.com/mcpmarket/mcpmarket/releases" class="btn-primary" target="_blank">
+            <i class="fa-solid fa-download"></i> Download
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <section class="section pricing">
+    <div class="container">
+      <div class="section-head">
+        <h2>Choose Your Plan</h2>
+        <p>Manage MCP servers on Windows with the perfect plan for your needs</p>
+      </div>
+
+      <div class="pricing-toggle">
+        <div class="toggle-container">
+          <button class="toggle-btn active" data-period="monthly">Monthly</button>
+          <button class="toggle-btn" data-period="yearly">Yearly <span class="discount-badge">Save 17%</span></button>
+        </div>
+      </div>
+
+      <div class="pricing-grid">
+        <!-- Plus Plan -->
+        <article class="pricing-card featured">
+          <div class="popular-badge">Most Popular</div>
+          <div class="card-header">
+            <div class="plan-name">Plus</div>
+            <div class="plan-description">For individual developers</div>
+            <div class="plan-price monthly-price">
+              <span class="currency">$</span>
+              <span class="price">10</span>
+              <span class="period">/month</span>
+            </div>
+            <div class="plan-price yearly-price" style="display: none;">
+              <span class="currency">$</span>
+              <span class="price">100</span>
+              <span class="period">/year</span>
+            </div>
+          </div>
+          <div class="card-content">
+            <ul class="feature-list">
+              <li><i class="fa-solid fa-check"></i> Install 22.167+ MCP servers</li>
+              <li><i class="fa-solid fa-check"></i> All 8 IDEs supported</li>
+              <li><i class="fa-solid fa-check"></i> Auto-configuration</li>
+              <li><i class="fa-solid fa-check"></i> Custom server support</li>
+              <li><i class="fa-solid fa-check"></i> Environment variable management</li>
+              <li><i class="fa-solid fa-check"></i> Installation tracking</li>
+              <li><i class="fa-solid fa-check"></i> Priority support</li>
+              <li><i class="fa-solid fa-check"></i> Early access to new servers</li>
+              <li><i class="fa-solid fa-check"></i> Windows installer & portable</li>
+            </ul>
+            <a href="https://github.com/mcpmarket/mcpmarket/releases" class="plan-button primary" target="_blank">
+              Get Plus
+            </a>
+          </div>
+        </article>
+
+        <!-- Pro Plan -->
+        <article class="pricing-card">
+          <div class="card-header">
+            <div class="plan-name">Pro</div>
+            <div class="plan-description">For power users and teams</div>
+            <div class="plan-price monthly-price">
+              <span class="currency">$</span>
+              <span class="price">20</span>
+              <span class="period">/month</span>
+            </div>
+            <div class="plan-price yearly-price" style="display: none;">
+              <span class="currency">$</span>
+              <span class="price">160</span>
+              <span class="period">/year</span>
+            </div>
+          </div>
+          <div class="card-content">
+            <ul class="feature-list">
+              <li><i class="fa-solid fa-check"></i> Everything in Plus</li>
+              <li><i class="fa-solid fa-check"></i> Team deployment tools</li>
+              <li><i class="fa-solid fa-check"></i> Custom branding</li>
+              <li><i class="fa-solid fa-check"></i> Dedicated support</li>
+              <li><i class="fa-solid fa-check"></i> Priority feature requests</li>
+              <li><i class="fa-solid fa-check"></i> SLA guarantee</li>
+              <li><i class="fa-solid fa-check"></i> Advanced analytics</li>
+              <li><i class="fa-solid fa-check"></i> Bulk server management</li>
+              <li><i class="fa-solid fa-check"></i> Custom integrations</li>
+            </ul>
+            <a href="mailto:contact@mcpmarket.dev" class="plan-button">
+              Contact Sales
+            </a>
+          </div>
+        </article>
+      </div>
+
+      <div class="cta-section">
+        <h3>Choose the Perfect Plan for You</h3>
+        <p>Start with Plus and upgrade to Pro when you need more advanced features. No commitment required.</p>
+        <div class="cta-actions">
+          <a href="https://github.com/mcpmarket/mcpmarket/releases" class="btn-primary" target="_blank">
+            <i class="fa-solid fa-download"></i> Download Now
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section faq-section">
+    <div class="container">
+      <div class="section-head">
+        <h2>Frequently Asked Questions</h2>
+      </div>
+      <div class="faq-grid">
+        <div class="faq-item">
+          <h4>Which plan should I choose?</h4>
+          <p>Plus is perfect for individual developers. Pro is ideal for teams and users who need advanced features like bulk management and custom integrations.</p>
+        </div>
+        <div class="faq-item">
+          <h4>Can I change plans later?</h4>
+          <p>Yes! You can upgrade or downgrade your plan at any time. Prorated billing will be applied automatically.</p>
+        </div>
+        <div class="faq-item">
+          <h4>Do I need to create an account?</h4>
+          <p>No account required. Just download, install, and start managing your MCP servers immediately.</p>
+        </div>
+        <div class="faq-item">
+          <h4>What IDEs are supported?</h4>
+          <p>MCPMarket supports Cursor, VS Code, Windsurf, Claude Code, Zed, Continue, Cline, and Kilo Code.</p>
+        </div>
+        <div class="faq-item">
+          <h4>How do I get updates?</h4>
+          <p>Updates are available through GitHub releases. MCPMarket will notify you when new versions are available.</p>
+        </div>
+        <div class="faq-item">
+          <h4>Is there a free trial?</h4>
+          <p>Yes! Start with a 14-day free trial to experience all Plus features before committing to a subscription.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-logo">
+          <div class="logo-icon-small">M</div>
+          <span>MCPMarket</span>
+        </div>
+        <div class="footer-links">
+          <a href="index.html">Home</a>
+          <a href="pricing.html" class="active">Pricing</a>
+          <a href="https://github.com/mcpmarket/mcpmarket" target="_blank">GitHub</a>
+          <a href="https://github.com/mcpmarket/mcpmarket/issues" target="_blank">Support</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 MCPMarket. Built with Electron + Next.js for Windows.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      document.body.classList.add('loaded');
+      
+      // Pricing toggle functionality
+      const monthlyBtn = document.querySelector('[data-period="monthly"]');
+      const yearlyBtn = document.querySelector('[data-period="yearly"]');
+      const monthlyPrices = document.querySelectorAll('.monthly-price');
+      const yearlyPrices = document.querySelectorAll('.yearly-price');
+
+      monthlyBtn.addEventListener('click', function() {
+        monthlyBtn.classList.add('active');
+        yearlyBtn.classList.remove('active');
+        monthlyPrices.forEach(price => price.style.display = 'flex');
+        yearlyPrices.forEach(price => price.style.display = 'none');
+      });
+
+      yearlyBtn.addEventListener('click', function() {
+        yearlyBtn.classList.add('active');
+        monthlyBtn.classList.remove('active');
+        yearlyPrices.forEach(price => price.style.display = 'flex');
+        monthlyPrices.forEach(price => price.style.display = 'none');
+      });
+
+      // Smooth scroll for anchor links
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+          e.preventDefault();
+          const target = document.querySelector(this.getAttribute('href'));
+          if (target) {
+            target.scrollIntoView({
+              behavior: 'smooth',
+              block: 'start'
+            });
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>
