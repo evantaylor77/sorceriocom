@@ -34,3 +34,7 @@ build
 # Temporary files
 *.tmp
 *.temp
+
+# Local permission-locked files
+index.html
+landing.css

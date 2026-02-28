@@ -45,7 +45,12 @@
     <div class="container hero-grid">
       <div>
         <span class="eyebrow"><i class="fa-solid fa-sparkles"></i> The Ultimate MCP Server Installer</span>
-        <h1>One-Click MCP Server Installation for Windows</h1>
+        <h1>
+          One-Click MCP Server Installation for
+          <span class="hero-os-wrap">
+            <span id="heroOsText" aria-live="polite">Windows</span><span class="hero-os-cursor" aria-hidden="true">|</span>
+          </span>
+        </h1>
         <p>
           Browse 22.167+ pre-configured MCP servers and install them with a single click. 
           Automatic IDE configuration for Cursor, VS Code, Windsurf, Claude Code, Zed, Continue, Cline, and Kilo Code.
@@ -311,12 +316,36 @@
     </div>
   </footer>
 
+  <div id="welcomeDownloadModal" class="welcome-modal" aria-hidden="true">
+    <div class="welcome-modal-panel" role="dialog" aria-modal="true" aria-labelledby="welcomeModalTitle">
+      <button id="welcomeModalClose" class="welcome-modal-close" type="button" aria-label="Close">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div class="welcome-modal-badge"><i class="fa-solid fa-cube"></i></div>
+      <h3 id="welcomeModalTitle">Welcome to OZMCP</h3>
+      <p>
+        Hesabınız başarıyla doğrulandı. OZMCP Desktop uygulamasını indirerek
+        MCP server kurulumunu tek tıkla başlatabilirsiniz.
+      </p>
+      <div class="welcome-modal-meta">
+        <span><strong>Program:</strong> OZMCP Desktop</span>
+        <span><strong>Destek:</strong> Windows, macOS, Linux</span>
+      </div>
+      <div class="welcome-modal-actions">
+        <a href="https://github.com/mcpmarket/mcpmarket/releases" class="btn-primary" target="_blank" rel="noopener">
+          <i class="fa-solid fa-download"></i> Download OZMCP
+        </a>
+        <button id="welcomeModalLater" class="btn-secondary" type="button">Later</button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="auth.js?v=20260228-1"></script>
+  <script src="auth.js?v=20260301-2"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       document.body.classList.add('loaded');
-      
+
       // Smooth scrolling for anchor links
       document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
@@ -330,6 +359,99 @@
           }
         });
       });
+
+      const osTextEl = document.getElementById('heroOsText');
+      if (osTextEl) {
+        const osNames = ['Windows', 'macOS', 'Linux'];
+        let osIndex = 0;
+        let charIndex = osNames[0].length;
+        let deleting = false;
+
+        const tick = () => {
+          const current = osNames[osIndex];
+          if (deleting) {
+            charIndex -= 1;
+            osTextEl.textContent = current.slice(0, Math.max(0, charIndex));
+            if (charIndex <= 0) {
+              deleting = false;
+              osIndex = (osIndex + 1) % osNames.length;
+            }
+          } else {
+            charIndex += 1;
+            osTextEl.textContent = current.slice(0, Math.min(current.length, charIndex));
+            if (charIndex >= current.length) {
+              deleting = true;
+            }
+          }
+
+          const delay = deleting ? 145 : 210;
+          const hold = (!deleting && charIndex >= current.length) ? 1900 : (deleting && charIndex <= 0 ? 520 : delay);
+          window.setTimeout(tick, hold);
+        };
+
+        osTextEl.textContent = osNames[0];
+        window.setTimeout(() => {
+          deleting = true;
+          tick();
+        }, 1900);
+      }
+
+      const WELCOME_POPUP_STORAGE_KEY = 'ozmcp_show_welcome_popup';
+      const modalEl = document.getElementById('welcomeDownloadModal');
+      const closeBtn = document.getElementById('welcomeModalClose');
+      const laterBtn = document.getElementById('welcomeModalLater');
+
+      const openWelcomeModal = () => {
+        if (!modalEl) return;
+        modalEl.classList.add('open');
+        modalEl.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('welcome-modal-open');
+      };
+
+      const closeWelcomeModal = () => {
+        if (!modalEl) return;
+        modalEl.classList.remove('open');
+        modalEl.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('welcome-modal-open');
+      };
+
+      if (closeBtn) closeBtn.addEventListener('click', closeWelcomeModal);
+      if (laterBtn) laterBtn.addEventListener('click', closeWelcomeModal);
+      if (modalEl) {
+        modalEl.addEventListener('click', (event) => {
+          if (event.target === modalEl) closeWelcomeModal();
+        });
+      }
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && modalEl?.classList.contains('open')) {
+          closeWelcomeModal();
+        }
+      });
+
+      const params = new URLSearchParams(window.location.search);
+      let storedWelcomeFlag = false;
+      try {
+        storedWelcomeFlag = window.localStorage.getItem(WELCOME_POPUP_STORAGE_KEY) === '1';
+      } catch (_) {
+        storedWelcomeFlag = false;
+      }
+
+      const shouldShowWelcomePopup =
+        params.get('welcome') === '1' || storedWelcomeFlag;
+      if (shouldShowWelcomePopup) {
+        try {
+          window.localStorage.removeItem(WELCOME_POPUP_STORAGE_KEY);
+        } catch (_) {
+          // ignore storage errors
+        }
+        if (params.get('welcome') === '1') {
+          params.delete('welcome');
+          const nextQuery = params.toString();
+          const nextUrl = nextQuery ? `${window.location.pathname}?${nextQuery}` : window.location.pathname;
+          window.history.replaceState({}, '', nextUrl);
+        }
+        openWelcomeModal();
+      }
     });
   </script>
 </body>

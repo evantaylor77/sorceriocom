@@ -204,6 +204,92 @@ body.loaded { visibility: visible; opacity: 1; }
   color: #f2cc6c;
 }
 
+body.welcome-modal-open {
+  overflow: hidden;
+}
+
+.welcome-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 130;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(2, 4, 10, 0.74);
+  backdrop-filter: blur(6px);
+}
+
+.welcome-modal.open {
+  display: flex;
+}
+
+.welcome-modal-panel {
+  width: min(100%, 480px);
+  border-radius: 18px;
+  border: 1px solid rgba(212, 168, 47, 0.35);
+  background: linear-gradient(165deg, rgba(16, 14, 9, 0.98), rgba(10, 12, 20, 0.96));
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+  padding: 22px 20px 18px;
+  position: relative;
+}
+
+.welcome-modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.04);
+  color: #e8edff;
+  cursor: pointer;
+}
+
+.welcome-modal-badge {
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  color: #191004;
+  background: radial-gradient(circle at 35% 30%, #f4d27f, #d4a82f 60%, #8b641c);
+  box-shadow: 0 0 0 8px rgba(212, 168, 47, 0.14);
+  margin-bottom: 12px;
+}
+
+.welcome-modal-panel h3 {
+  font-size: 1.4rem;
+  margin-bottom: 8px;
+}
+
+.welcome-modal-panel p {
+  color: #cfd6ee;
+  line-height: 1.55;
+  margin-bottom: 14px;
+}
+
+.welcome-modal-meta {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 14px;
+  color: #e8ddc2;
+  font-size: .92rem;
+}
+
+.welcome-modal-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.welcome-modal-actions .btn-primary,
+.welcome-modal-actions .btn-secondary {
+  flex: 1 1 180px;
+  justify-content: center;
+}
+
 .section {
   padding: 90px 0;
   position: relative;
@@ -238,6 +324,29 @@ body.loaded { visibility: visible; opacity: 1; }
   line-height: 1.03;
   letter-spacing: -.02em;
   margin-bottom: 16px;
+}
+
+.hero-os-wrap {
+  display: inline-flex;
+  align-items: baseline;
+  min-width: 9ch;
+  margin-left: .25ch;
+  color: var(--accent);
+}
+
+#heroOsText {
+  display: inline-block;
+}
+
+.hero-os-cursor {
+  display: inline-block;
+  margin-left: 1px;
+  color: #f7d188;
+  animation: heroCursorBlink .95s steps(1, end) infinite;
+}
+
+@keyframes heroCursorBlink {
+  50% { opacity: 0; }
 }
 
 .hero p {
