@@ -439,12 +439,20 @@
         if (error) {
           const lowerMsg = String(error.message || "").toLowerCase();
           if (lowerMsg.includes("rate limit")) {
+            pendingVerificationEmail = email;
+            pendingVerificationType = "signup";
+            if (verifyEmailEl) verifyEmailEl.value = email;
+            updateVerifyMaskedEmail(email);
+            clearOtpDigits();
+            showStep(3);
+            focusOtpIndex(0);
+            startResendCooldown();
+
             const otpFallback = await client.auth.signInWithOtp({
               email,
               options: { emailRedirectTo: authRedirectTo }
             });
             if (!otpFallback.error) {
-              pendingVerificationEmail = email;
               pendingVerificationType = "email";
               if (verifyEmailEl) verifyEmailEl.value = email;
               updateVerifyMaskedEmail(email);
@@ -456,8 +464,7 @@
               return;
             }
 
-            showStep(2);
-            setMessage("E-posta gönderim limiti dolu. Yaklaşık 60 saniye bekleyip tekrar deneyin.", true, 2);
+            setMessage("Yeni kod şu an gönderilemiyor. Son gelen e-posta kodunu girip devam edin.", false, 3);
             return;
           }
           setMessage(error.message, true, 2);
@@ -600,7 +607,7 @@
         resendVerifyCodeBtn.disabled = false;
         const lowerMsg = String(error.message || "").toLowerCase();
         if (lowerMsg.includes("rate limit")) {
-          setMessage("E-posta gönderim limiti dolu. Son gelen kodu kullanın veya biraz bekleyin.", true, 3);
+          setMessage("Yeni kod şu an gönderilemiyor. Son gelen e-posta kodunu girip devam edin.", false, 3);
           return;
         }
         setMessage(error.message, true, 3);
