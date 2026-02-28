@@ -2,127 +2,111 @@
   const SUPABASE_URL = "https://yvnymvyfzpxjxiuadmat.supabase.co";
   const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_Ut9Brq0lHzA_bqtiqTCvYw_mncnnuFT";
 
-  const signInBtn = document.getElementById("authSignIn");
-  const signOutBtn = document.getElementById("authSignOut");
-  const profileEl = document.getElementById("authProfile");
-
-  if (!signInBtn || !signOutBtn || !profileEl || !window.supabase) {
-    return;
-  }
+  if (!window.supabase) return;
 
   const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
-  const modal = document.createElement("div");
-  modal.className = "auth-modal";
-  modal.id = "authModal";
-  modal.innerHTML = `
-    <div class="auth-dialog">
-      <h3>Membership</h3>
-      <p>Create an account or sign in to your membership.</p>
-      <div class="auth-field">
-        <label for="authEmail">Email</label>
-        <input id="authEmail" type="email" autocomplete="email" />
-      </div>
-      <div class="auth-field">
-        <label for="authPassword">Password</label>
-        <input id="authPassword" type="password" autocomplete="current-password" />
-      </div>
-      <div class="auth-actions">
-        <button id="authSubmitSignIn" class="auth-btn" type="button">Sign In</button>
-        <button id="authSubmitSignUp" class="auth-btn" type="button">Sign Up</button>
-        <button id="authClose" class="auth-btn" type="button">Close</button>
-      </div>
-      <div id="authMessage" class="auth-message"></div>
-    </div>
-  `;
-  document.body.appendChild(modal);
+  const signInEl = document.getElementById("authSignIn");
+  const signOutEl = document.getElementById("authSignOut");
+  const profileEl = document.getElementById("authProfile");
+  const authMessageEl = document.getElementById("authMessage");
 
-  const emailInput = document.getElementById("authEmail");
-  const passwordInput = document.getElementById("authPassword");
-  const msg = document.getElementById("authMessage");
-  const closeBtn = document.getElementById("authClose");
-  const submitSignInBtn = document.getElementById("authSubmitSignIn");
-  const submitSignUpBtn = document.getElementById("authSubmitSignUp");
-
-  const setMsg = (text, isError = false) => {
-    msg.textContent = text;
-    msg.style.color = isError ? "#fca5a5" : "#f2cc6c";
+  const setMessage = (message, isError = false) => {
+    if (!authMessageEl) return;
+    authMessageEl.textContent = message || "";
+    authMessageEl.style.color = isError ? "#fca5a5" : "#f2cc6c";
   };
 
-  const setAuthUI = (session) => {
+  const setNavAuthUI = (session) => {
+    if (!signInEl || !signOutEl || !profileEl) return;
+
     const userEmail = session?.user?.email || "";
     const initial = userEmail ? userEmail[0].toUpperCase() : "?";
     profileEl.textContent = initial;
     profileEl.title = userEmail || "Guest";
-    signInBtn.style.display = session ? "none" : "inline-flex";
-    signOutBtn.style.display = session ? "inline-flex" : "none";
     profileEl.style.display = session ? "inline-flex" : "none";
+    signInEl.style.display = session ? "none" : "inline-flex";
+    signOutEl.style.display = session ? "inline-flex" : "none";
   };
 
-  const handleSignIn = async () => {
-    const email = emailInput.value.trim();
-    const password = passwordInput.value;
-    if (!email || !password) {
-      setMsg("Email ve şifre gerekli.", true);
-      return;
-    }
-    const { error } = await client.auth.signInWithPassword({ email, password });
-    if (error) {
-      setMsg(error.message, true);
-      return;
-    }
-    setMsg("Giriş başarılı.");
-    modal.classList.remove("open");
-  };
-
-  const handleSignUp = async () => {
-    const email = emailInput.value.trim();
-    const password = passwordInput.value;
-    if (!email || !password) {
-      setMsg("Email ve şifre gerekli.", true);
-      return;
-    }
-    const { error } = await client.auth.signUp({
-      email,
-      password,
-      options: { emailRedirectTo: window.location.origin }
+  if (signOutEl) {
+    signOutEl.addEventListener("click", async () => {
+      const { error } = await client.auth.signOut();
+      if (error) {
+        setMessage(error.message, true);
+        return;
+      }
+      setMessage("Signed out.");
+      if (window.location.pathname === "/dashboard" || window.location.pathname.endsWith("/dashboard.html")) {
+        window.location.href = "/dashboard";
+      }
     });
-    if (error) {
-      setMsg(error.message, true);
-      return;
+  }
+
+  const signInForm = document.getElementById("dashboardSignInForm");
+  const signUpForm = document.getElementById("dashboardSignUpForm");
+
+  if (signInForm) {
+    signInForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const email = document.getElementById("dashboardEmail")?.value?.trim() || "";
+      const password = document.getElementById("dashboardPassword")?.value || "";
+      if (!email || !password) {
+        setMessage("Email and password are required.", true);
+        return;
+      }
+      const { error } = await client.auth.signInWithPassword({ email, password });
+      if (error) {
+        setMessage(error.message, true);
+        return;
+      }
+      setMessage("Signed in successfully.");
+    });
+  }
+
+  if (signUpForm) {
+    signUpForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const email = document.getElementById("dashboardEmail")?.value?.trim() || "";
+      const password = document.getElementById("dashboardPassword")?.value || "";
+      if (!email || !password) {
+        setMessage("Email and password are required.", true);
+        return;
+      }
+      const { error } = await client.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo: window.location.origin + "/dashboard" }
+      });
+      if (error) {
+        setMessage(error.message, true);
+        return;
+      }
+      setMessage("Account created. Please verify your email if required.");
+    });
+  }
+
+  const dashboardGuestView = document.getElementById("dashboardGuestView");
+  const dashboardUserView = document.getElementById("dashboardUserView");
+  const dashboardUserEmail = document.getElementById("dashboardUserEmail");
+
+  const setDashboardUI = (session) => {
+    if (!dashboardGuestView || !dashboardUserView) return;
+    const isSignedIn = Boolean(session);
+    dashboardGuestView.style.display = isSignedIn ? "none" : "block";
+    dashboardUserView.style.display = isSignedIn ? "block" : "none";
+    if (dashboardUserEmail) {
+      dashboardUserEmail.textContent = session?.user?.email || "";
     }
-    setMsg("Kayıt tamamlandı. E-posta onayı gerekebilir.");
   };
-
-  signInBtn.addEventListener("click", () => {
-    setMsg("");
-    modal.classList.add("open");
-    emailInput.focus();
-  });
-
-  signOutBtn.addEventListener("click", async () => {
-    const { error } = await client.auth.signOut();
-    if (error) {
-      setMsg(error.message, true);
-      return;
-    }
-    setMsg("Çıkış yapıldı.");
-  });
-
-  closeBtn.addEventListener("click", () => modal.classList.remove("open"));
-  modal.addEventListener("click", (event) => {
-    if (event.target === modal) {
-      modal.classList.remove("open");
-    }
-  });
-  submitSignInBtn.addEventListener("click", handleSignIn);
-  submitSignUpBtn.addEventListener("click", handleSignUp);
 
   client.auth.onAuthStateChange((_event, session) => {
-    setAuthUI(session);
+    setNavAuthUI(session);
+    setDashboardUI(session);
   });
 
   client.auth.getSession().then(({ data }) => {
-    setAuthUI(data.session);
+    setNavAuthUI(data.session);
+    setDashboardUI(data.session);
   });
 })();

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - MCPMarket</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="landing_new.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    .dashboard-wrap {
+      width: min(780px, calc(100% - 28px));
+      margin: 44px auto 64px;
+      padding: 24px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: linear-gradient(145deg, rgba(0,0,0,.93), rgba(13,17,23,.9));
+      box-shadow: var(--shadow);
+    }
+    .dashboard-title { margin-bottom: 10px; }
+    .dashboard-sub { color: var(--muted); margin-bottom: 18px; }
+    .dash-field { margin-bottom: 10px; }
+    .dash-field label { display: block; font-size: .86rem; margin-bottom: 5px; color: #d1d8f0; }
+    .dash-field input {
+      width: 100%;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 10px;
+      color: #fff;
+      padding: 10px 12px;
+    }
+    .dash-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .dash-message { min-height: 20px; margin-top: 12px; color: #f2cc6c; font-size: .9rem; }
+  </style>
+</head>
+<body class="loaded">
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-logo">
+        <div class="logo-icon">M</div>
+        <span>MCPMarket</span>
+      </div>
+      <div class="nav-links nav-links-main">
+        <a href="/#features" class="nav-link">Features</a>
+        <a href="/#servers" class="nav-link">Servers</a>
+        <a href="/#ides" class="nav-link">IDE Support</a>
+        <a href="/pricing.html" class="nav-link">Pricing</a>
+        <a href="/#faq" class="nav-link">FAQ</a>
+      </div>
+      <div class="nav-cta">
+        <a id="authSignIn" class="auth-btn" href="/dashboard">Sign In</a>
+        <button id="authSignOut" class="auth-btn" type="button" style="display:none;">Sign Out</button>
+        <a id="authProfile" class="profile-avatar" href="javascript:void(0)" aria-label="Profile">?</a>
+        <a href="https://github.com/mcpmarket/mcpmarket/releases" class="btn-primary" target="_blank">
+          <i class="fa-solid fa-download"></i> Download
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="dashboard-wrap">
+    <h1 class="dashboard-title">Dashboard</h1>
+    <p class="dashboard-sub">Sign in to access your membership dashboard.</p>
+
+    <section id="dashboardGuestView">
+      <form id="dashboardSignInForm">
+        <div class="dash-field">
+          <label for="dashboardEmail">Email</label>
+          <input id="dashboardEmail" type="email" autocomplete="email" required>
+        </div>
+        <div class="dash-field">
+          <label for="dashboardPassword">Password</label>
+          <input id="dashboardPassword" type="password" autocomplete="current-password" required>
+        </div>
+        <div class="dash-actions">
+          <button class="auth-btn" type="submit">Sign In</button>
+        </div>
+      </form>
+      <form id="dashboardSignUpForm">
+        <div class="dash-actions">
+          <button class="auth-btn" type="submit">Create Account</button>
+        </div>
+      </form>
+      <div id="authMessage" class="dash-message"></div>
+    </section>
+
+    <section id="dashboardUserView" style="display:none;">
+      <p class="dashboard-sub">Signed in as: <strong id="dashboardUserEmail"></strong></p>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="auth.js"></script>
+</body>
+</html>

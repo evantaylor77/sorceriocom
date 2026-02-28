@@ -4,6 +4,7 @@
   "routes": [
     { "src": "^/$", "dest": "/index_new.html" },
     { "src": "^/index.html$", "dest": "/index_new.html" },
-    { "src": "^/pricing$", "dest": "/pricing.html" }
+    { "src": "^/pricing$", "dest": "/pricing.html" },
+    { "src": "^/dashboard$", "dest": "/dashboard.html" }
   ]
 }
