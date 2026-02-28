@@ -121,11 +121,11 @@
     if (!resendVerifyCodeBtn) return;
     if (remaining <= 0) {
       resendVerifyCodeBtn.disabled = false;
-      resendVerifyCodeBtn.textContent = "Tekrar gonder";
+      resendVerifyCodeBtn.textContent = "Tekrar gönder";
       return;
     }
     resendVerifyCodeBtn.disabled = true;
-    resendVerifyCodeBtn.textContent = `Tekrar gonder (${remaining}s)`;
+    resendVerifyCodeBtn.textContent = `Tekrar gönder (${remaining}s)`;
   };
 
   const startResendCooldown = () => {
@@ -164,22 +164,59 @@
   };
 
   const POST_AUTH_INTENT_KEY = "ozmcp_post_auth_intent";
-  const authRedirectTo = window.location.origin + "/dashboard?postAuth=1";
+  const POST_AUTH_REDIRECT_KEY = "ozmcp_post_auth_redirect";
 
-  const redirectToHomeAfterAuth = () => {
+  const sanitizeRelativePath = (value) => {
+    const raw = String(value || "").trim();
+    if (!raw) return "";
+    if (!raw.startsWith("/")) return "";
+    if (raw.startsWith("//")) return "";
+    if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(raw)) return "";
+    return raw;
+  };
+
+  const currentQuery = (() => {
+    try {
+      return new URLSearchParams(window.location.search);
+    } catch (_) {
+      return new URLSearchParams();
+    }
+  })();
+
+  const requestedNext = sanitizeRelativePath(currentQuery.get("next"));
+  const authRedirectQuery = new URLSearchParams();
+  authRedirectQuery.set("postAuth", "1");
+  if (requestedNext) authRedirectQuery.set("next", requestedNext);
+  const authRedirectTo = `${window.location.origin}/dashboard?${authRedirectQuery.toString()}`;
+
+  const getPostAuthRedirect = () => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const queryNext = sanitizeRelativePath(params.get("next"));
+      if (queryNext) return queryNext;
+      return sanitizeRelativePath(window.sessionStorage.getItem(POST_AUTH_REDIRECT_KEY));
+    } catch (_) {
+      return "";
+    }
+  };
+
+  const redirectAfterAuth = () => {
+    const target = getPostAuthRedirect();
     try {
       window.sessionStorage.removeItem(POST_AUTH_INTENT_KEY);
+      window.sessionStorage.removeItem(POST_AUTH_REDIRECT_KEY);
     } catch (_) {
       // ignore storage errors
     }
-    window.location.href = "/?welcome=1";
+    window.location.href = target || "/?welcome=1";
   };
 
-  const shouldRedirectToHomeAfterCallback = () => {
+  const shouldRedirectAfterCallback = () => {
     try {
       const params = new URLSearchParams(window.location.search);
       if (params.get("postAuth") === "1") return true;
-      return window.sessionStorage.getItem(POST_AUTH_INTENT_KEY) === "1";
+      if (sanitizeRelativePath(params.get("next"))) return true;
+      return window.sessionStorage.getItem(POST_AUTH_INTENT_KEY) === "1" || Boolean(sanitizeRelativePath(window.sessionStorage.getItem(POST_AUTH_REDIRECT_KEY)));
     } catch (_) {
       return false;
     }
@@ -221,6 +258,7 @@
   const signInWithOAuth = async (provider) => {
     try {
       window.sessionStorage.setItem(POST_AUTH_INTENT_KEY, "1");
+      if (requestedNext) window.sessionStorage.setItem(POST_AUTH_REDIRECT_KEY, requestedNext);
     } catch (_) {
       // ignore storage errors
     }
@@ -389,7 +427,7 @@
 
       if (checkedEmailExists === false) isSignUpMode = true;
       syncAuthModeText();
-      setButtonLoading(passwordSubmitBtn, true, isSignUpMode ? "Kayit olusturuluyor..." : "Giris yapiliyor...");
+      setButtonLoading(passwordSubmitBtn, true, isSignUpMode ? "Kayıt oluşturuluyor..." : "Giriş yapılıyor...");
 
       if (isSignUpMode) {
         const { data, error } = await client.auth.signUp({
@@ -401,13 +439,25 @@
         if (error) {
           const lowerMsg = String(error.message || "").toLowerCase();
           if (lowerMsg.includes("rate limit")) {
-            pendingVerificationEmail = email;
-            pendingVerificationType = "signup";
-            if (verifyEmailEl) verifyEmailEl.value = email;
-            updateVerifyMaskedEmail(email);
-            showStep(3);
-            focusOtpIndex(0);
-            setMessage("Yeni kod su an gonderilemiyor. Son gelen e-posta kodunu girip devam edin.", true, 3);
+            const otpFallback = await client.auth.signInWithOtp({
+              email,
+              options: { emailRedirectTo: authRedirectTo }
+            });
+            if (!otpFallback.error) {
+              pendingVerificationEmail = email;
+              pendingVerificationType = "email";
+              if (verifyEmailEl) verifyEmailEl.value = email;
+              updateVerifyMaskedEmail(email);
+              clearOtpDigits();
+              showStep(3);
+              focusOtpIndex(0);
+              startResendCooldown();
+              setMessage("Onay e-postası limiti doldu. Giriş kodu gönderildi, kodu girerek devam edin.", false, 3);
+              return;
+            }
+
+            showStep(2);
+            setMessage("E-posta gönderim limiti dolu. Yaklaşık 60 saniye bekleyip tekrar deneyin.", true, 2);
             return;
           }
           setMessage(error.message, true, 2);
@@ -415,7 +465,7 @@
         }
         if (data?.session) {
           setMessage("Kayıt başarılı. Giriş yapıldı.", false, 2);
-          redirectToHomeAfterAuth();
+          redirectAfterAuth();
           return;
         }
         pendingVerificationEmail = email;
@@ -443,7 +493,7 @@
           clearOtpDigits();
           showStep(3);
           focusOtpIndex(0);
-          setMessage("E-posta dogrulanmadi. E-postadaki kodu girerek devami tamamlayin.", true, 3);
+          setMessage("E-posta doğrulanmadı. E-postadaki kodu girerek devamı tamamlayın.", true, 3);
           return;
         }
         if (String(error.message || "").toLowerCase().includes("invalid login credentials")) {
@@ -472,11 +522,11 @@
         clearOtpDigits();
         showStep(3);
         focusOtpIndex(0);
-        setMessage("E-posta dogrulama tamamlanmadan giris yapilamaz.", true, 3);
+        setMessage("E-posta doğrulama tamamlanmadan giriş yapılamaz.", true, 3);
         return;
       }
       setMessage("Giriş başarılı.", false, 2);
-      redirectToHomeAfterAuth();
+      redirectAfterAuth();
     });
   }
 
@@ -489,7 +539,7 @@
         setMessage("E-posta ve onay kodu gerekli.", true, 3);
         return;
       }
-      setButtonLoading(verifyCodeSubmitBtn, true, "Kod dogrulaniyor...");
+      setButtonLoading(verifyCodeSubmitBtn, true, "Kod doğrulanıyor...");
       const preferredType = pendingVerificationType === "email" ? "email" : "signup";
       const fallbackType = preferredType === "signup" ? "email" : "signup";
 
@@ -517,7 +567,7 @@
       }
       clearOtpDigits();
       setMessage("E-posta doğrulandı. Giriş başarılı.", false, 3);
-      redirectToHomeAfterAuth();
+      redirectAfterAuth();
     });
   }
 
@@ -550,7 +600,7 @@
         resendVerifyCodeBtn.disabled = false;
         const lowerMsg = String(error.message || "").toLowerCase();
         if (lowerMsg.includes("rate limit")) {
-          setMessage("E-posta gonderim limiti dolu. Son gelen kodu kullanin veya biraz bekleyin.", true, 3);
+          setMessage("E-posta gönderim limiti dolu. Son gelen kodu kullanın veya biraz bekleyin.", true, 3);
           return;
         }
         setMessage(error.message, true, 3);
@@ -575,12 +625,12 @@
   client.auth.onAuthStateChange(async (_event, session) => {
     if (session && !isVerifiedSession(session)) {
       await client.auth.signOut();
-      setMessage("E-posta dogrulama tamamlanmadan sisteme giris yapilamaz.", true, 2);
+      setMessage("E-posta doğrulama tamamlanmadan sisteme giriş yapılamaz.", true, 2);
       showStep(1);
       return;
     }
-    if (session && isDashboard && shouldRedirectToHomeAfterCallback()) {
-      redirectToHomeAfterAuth();
+    if (session && isDashboard && shouldRedirectAfterCallback()) {
+      redirectAfterAuth();
       return;
     }
     setNavAuthUI(session);
@@ -592,12 +642,12 @@
       await client.auth.signOut();
       setNavAuthUI(null);
       setDashboardUI(null);
-      setMessage("E-posta dogrulama tamamlanmadan sisteme giris yapilamaz.", true, 2);
+      setMessage("E-posta doğrulama tamamlanmadan sisteme giriş yapılamaz.", true, 2);
       showStep(1);
       return;
     }
-    if (data.session && isDashboard && shouldRedirectToHomeAfterCallback()) {
-      redirectToHomeAfterAuth();
+    if (data.session && isDashboard && shouldRedirectAfterCallback()) {
+      redirectAfterAuth();
       return;
     }
     setNavAuthUI(data.session);
@@ -606,3 +656,4 @@
     if (!data.session && isDashboard) showStep(1);
   });
 })();
+

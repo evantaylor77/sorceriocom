@@ -66,6 +66,64 @@
       border-radius: 999px;
       padding: 2px 7px;
     }
+    .checkout-shell {
+      width: min(100%, 618px);
+      margin: 0 0 16px;
+      border: 1px solid rgba(212,168,47,.28);
+      border-radius: 16px;
+      background: linear-gradient(130deg, rgba(24,20,12,.92), rgba(10,13,24,.92));
+      box-shadow: 0 18px 36px rgba(0,0,0,.34);
+      padding: 14px 14px 12px;
+    }
+    .checkout-shell-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .checkout-shell-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #f5e5b8;
+      font-weight: 800;
+      letter-spacing: .01em;
+    }
+    .checkout-shell-title i { color: #f2cc6c; }
+    .checkout-picked {
+      color: #dce5ff;
+      font-size: .92rem;
+      font-weight: 700;
+      text-align: right;
+    }
+    .checkout-picked strong { color: #f3cf73; }
+    .checkout-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .checkout-chip {
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.04);
+      color: #cfd8f6;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: .8rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .checkout-chip i { color: #f2cc6c; }
+    #pricingCheckoutMessage {
+      min-height: 22px;
+      margin-top: 10px;
+      color: #f2cc6c;
+      font-size: .9rem;
+      font-weight: 700;
+      text-align: center;
+    }
     .pricing .pricing-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 300px));
@@ -143,6 +201,17 @@
       .pricing .pricing-card {
         max-width: 100% !important;
       }
+      .checkout-shell {
+        width: 100%;
+        max-width: 360px;
+      }
+      .checkout-shell-top {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .checkout-picked {
+        text-align: left;
+      }
     }
     @media (max-width: 640px) {
       .plan-button { width: 100%; text-align: center; justify-content: center; }
@@ -194,6 +263,18 @@
             <button class="toggle-btn" data-period="yearly">Yearly <span class="discount-badge">Save 17%</span></button>
           </div>
         </div>
+        <div class="checkout-shell">
+          <div class="checkout-shell-top">
+            <div class="checkout-shell-title"><i class="fa-solid fa-credit-card"></i> Secure Paddle Checkout</div>
+            <div id="checkoutPickedPlan" class="checkout-picked">Selected: <strong>Plus Monthly</strong></div>
+          </div>
+          <div class="checkout-chips">
+            <span class="checkout-chip"><i class="fa-solid fa-shield-halved"></i> Sandbox Billing</span>
+            <span class="checkout-chip"><i class="fa-solid fa-bolt"></i> Instant Access</span>
+            <span class="checkout-chip"><i class="fa-solid fa-repeat"></i> Manage Subscription</span>
+          </div>
+          <div id="pricingCheckoutMessage"></div>
+        </div>
 
         <div class="pricing-grid">
           <!-- Plus Plan -->
@@ -221,9 +302,9 @@
                 <li><i class="fa-solid fa-check"></i> Priority support</li>
                 <li><i class="fa-solid fa-check"></i> Windows installer & portable</li>
               </ul>
-              <a href="https://github.com/mcpmarket/mcpmarket/releases" class="plan-button primary" target="_blank">
+              <button type="button" class="plan-button primary js-paddle-checkout" data-plan="plus">
                 Get Plus
-              </a>
+              </button>
             </div>
           </article>
 
@@ -250,9 +331,9 @@
                 <li><i class="fa-solid fa-check"></i> Dedicated support</li>
                 <li><i class="fa-solid fa-check"></i> Custom integrations</li>
               </ul>
-              <a href="https://github.com/mcpmarket/mcpmarket/releases" class="plan-button" target="_blank">
+              <button type="button" class="plan-button js-paddle-checkout" data-plan="pro">
                 Get Pro
-              </a>
+              </button>
             </div>
           </article>
         </div>
@@ -325,7 +406,8 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="auth.js?v=20260301-2"></script>
+  <script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
+  <script src="auth.js?v=20260301-6"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       document.body.classList.add('loaded');
@@ -350,6 +432,142 @@
         monthlyPrices.forEach(price => price.style.display = 'none');
       });
 
+      const SUPABASE_URL = 'https://yvnymvyfzpxjxiuadmat.supabase.co';
+      const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_Ut9Brq0lHzA_bqtiqTCvYw_mncnnuFT';
+      const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY) : null;
+
+      const checkoutMessageEl = document.getElementById('pricingCheckoutMessage');
+      const checkoutPickedPlanEl = document.getElementById('checkoutPickedPlan');
+      const showCheckoutMessage = (message, isError) => {
+        if (!checkoutMessageEl) return;
+        checkoutMessageEl.textContent = message || '';
+        checkoutMessageEl.style.color = isError ? '#fca5a5' : '#f2cc6c';
+      };
+
+      const paddleClientToken = 'test_5806d829bb2fda4370368edd0d9';
+      const priceMap = {
+        plus: {
+          monthly: 'pri_01jyycnkrkc57f0jnyejbvbv32',
+          yearly: 'pri_01jyyczvmvwf1xk1n1cv6akdj8'
+        },
+        pro: {
+          monthly: 'pri_01jzrxaqx8p35hghhqhb29rz01',
+          yearly: 'pri_01jzrxd62tpy5x3rjpr40eh43k'
+        }
+      };
+
+      const updatePickedPlan = () => {
+        const selectedPeriodBtn = document.querySelector('.toggle-btn.active');
+        const period = selectedPeriodBtn?.dataset?.period === 'yearly' ? 'Yearly' : 'Monthly';
+        const preferredPlan = document.querySelector('.pricing-card.featured .js-paddle-checkout')?.dataset?.plan || 'plus';
+        const plan = preferredPlan === 'pro' ? 'Pro' : 'Plus';
+        if (checkoutPickedPlanEl) {
+          checkoutPickedPlanEl.innerHTML = `Selected: <strong>${plan} ${period}</strong>`;
+        }
+      };
+
+      const isVerifiedSession = (session) => {
+        const confirmedAt = session?.user?.email_confirmed_at || session?.user?.confirmed_at;
+        return Boolean(session && confirmedAt);
+      };
+
+      const getVerifiedSession = async () => {
+        if (!supabaseClient) return null;
+        const result = await supabaseClient.auth.getSession();
+        const session = result?.data?.session || null;
+        return isVerifiedSession(session) ? session : null;
+      };
+
+      const goToAuthForCheckout = (plan, period) => {
+        const nextPath = `/pricing?resumeCheckout=1&plan=${encodeURIComponent(plan)}&period=${encodeURIComponent(period)}`;
+        window.location.href = `/dashboard?next=${encodeURIComponent(nextPath)}`;
+      };
+
+      const openCheckoutFor = (plan, period, verifiedSession) => {
+        if (!window.Paddle) {
+          showCheckoutMessage('Paddle yüklenemedi. Sayfayı yenileyip tekrar deneyin.', true);
+          return;
+        }
+        const priceId = priceMap?.[plan]?.[period];
+        if (!priceId) {
+          showCheckoutMessage('Plan/fiyat bilgisi bulunamadı.', true);
+          return;
+        }
+        if (checkoutPickedPlanEl) {
+          checkoutPickedPlanEl.innerHTML = `Selected: <strong>${plan === 'pro' ? 'Pro' : 'Plus'} ${period === 'yearly' ? 'Yearly' : 'Monthly'}</strong>`;
+        }
+        showCheckoutMessage('', false);
+        const user = verifiedSession?.user || {};
+        const customData = {
+          supabase_user_id: user.id || '',
+          supabase_email: user.email || '',
+          plan_tier: plan
+        };
+        Paddle.Checkout.open({
+          items: [{ priceId: priceId, quantity: 1 }],
+          customer: user.email ? { email: user.email } : undefined,
+          customData,
+          settings: {
+            displayMode: 'overlay',
+            theme: 'dark',
+            locale: 'en'
+          }
+        });
+      };
+
+      if (window.Paddle) {
+        Paddle.Environment.set('sandbox');
+        Paddle.Initialize({
+          token: paddleClientToken,
+          eventCallback: function(event) {
+            if (event?.name === 'checkout.completed') {
+              showCheckoutMessage('Ödeme başarıyla tamamlandı. Teşekkürler!', false);
+            }
+          }
+        });
+      }
+
+      const checkoutButtons = document.querySelectorAll('.js-paddle-checkout');
+      checkoutButtons.forEach((button) => {
+        button.addEventListener('click', async function () {
+          const selectedPeriodBtn = document.querySelector('.toggle-btn.active');
+          const period = selectedPeriodBtn?.dataset?.period === 'yearly' ? 'yearly' : 'monthly';
+          const plan = String(button.dataset.plan || '').toLowerCase() === 'pro' ? 'pro' : 'plus';
+
+          const verifiedSession = await getVerifiedSession();
+          if (!verifiedSession) {
+            showCheckoutMessage('Satın alma için önce giriş yapın veya kaydolun. Yönlendiriliyorsunuz...', false);
+            goToAuthForCheckout(plan, period);
+            return;
+          }
+          openCheckoutFor(plan, period, verifiedSession);
+        });
+      });
+
+      monthlyBtn.addEventListener('click', updatePickedPlan);
+      yearlyBtn.addEventListener('click', updatePickedPlan);
+      updatePickedPlan();
+
+      const params = new URLSearchParams(window.location.search);
+      const resumeCheckout = params.get('resumeCheckout') === '1';
+      const resumePlan = String(params.get('plan') || 'plus').toLowerCase() === 'pro' ? 'pro' : 'plus';
+      const resumePeriod = params.get('period') === 'yearly' ? 'yearly' : 'monthly';
+
+      if (resumePeriod === 'yearly') yearlyBtn.click();
+      if (resumeCheckout) {
+        getVerifiedSession().then((verifiedSession) => {
+          if (!verifiedSession) return;
+          showCheckoutMessage('Giriş başarılı. Satın alma ekranınız açılıyor...', false);
+          openCheckoutFor(resumePlan, resumePeriod, verifiedSession);
+          params.delete('resumeCheckout');
+          params.delete('plan');
+          params.delete('period');
+          const nextQuery = params.toString();
+          const nextUrl = nextQuery ? `${window.location.pathname}?${nextQuery}` : window.location.pathname;
+          window.history.replaceState({}, '', nextUrl);
+        });
+      }
+
       // Smooth scroll for anchor links
       document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
@@ -367,3 +585,4 @@
   </script>
 </body>
 </html>
+

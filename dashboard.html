@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -335,23 +335,23 @@
       </div>
       <input id="dashboardEmail" class="auth-input" type="email" placeholder="E-posta adresiniz" autocomplete="email">
       <button id="continueToPassword" class="auth-btn" type="button">Devam Et</button>
-      <a id="toggleSignMode" class="auth-center-link" href="javascript:void(0)">Hesabiniz yok mu? Kaydol</a>
+      <a id="toggleSignMode" class="auth-center-link" href="javascript:void(0)">Hesabınız yok mu? Kaydol</a>
       <div id="authMessage" class="auth-message"></div>
     </section>
 
     <section id="authStepPassword" class="auth-step">
-      <button id="emailCodeSignIn" class="auth-btn" type="button"><i class="fa-regular fa-envelope"></i> E-posta giris kodu</button>
+      <button id="emailCodeSignIn" class="auth-btn" type="button"><i class="fa-regular fa-envelope"></i> E-posta giriş kodu</button>
       <div class="auth-label-row">
         <label for="dashboardEmailConfirm" class="auth-label">E-posta</label>
       </div>
       <input id="dashboardEmailConfirm" class="auth-input" type="email" readonly>
       <div class="auth-label-row">
-        <label for="dashboardPassword" class="auth-label">Sifre</label>
-        <a id="forgotPasswordLink" class="auth-link" href="javascript:void(0)">Sifrenizi mi unuttunuz?</a>
+        <label for="dashboardPassword" class="auth-label">Şifre</label>
+        <a id="forgotPasswordLink" class="auth-link" href="javascript:void(0)">Şifrenizi mi unuttunuz?</a>
       </div>
-      <input id="dashboardPassword" class="auth-input" type="password" placeholder="Sifreniz" autocomplete="current-password">
-      <button id="passwordSubmit" class="auth-btn" type="button">Giris yap</button>
-      <a id="backToEmail" class="auth-center-link" href="javascript:void(0)"><i class="fa-solid fa-angle-left"></i> Geri don</a>
+      <input id="dashboardPassword" class="auth-input" type="password" placeholder="Şifreniz" autocomplete="current-password">
+      <button id="passwordSubmit" class="auth-btn" type="button">Giriş yap</button>
+      <a id="backToEmail" class="auth-center-link" href="javascript:void(0)"><i class="fa-solid fa-angle-left"></i> Geri dön</a>
       <div id="authMessageStep2" class="auth-message"></div>
     </section>
 
@@ -359,7 +359,7 @@
       <div class="verify-wrap">
         <div class="verify-badge"><i class="fa-solid fa-envelope-circle-check"></i></div>
         <h2 class="verify-title">Verification Code</h2>
-        <p class="verify-sub">Dogrulama kodu <strong id="verifyMaskedEmail">*****</strong> adresine gonderildi.</p>
+        <p class="verify-sub">Doğrulama kodu <strong id="verifyMaskedEmail">*****</strong> adresine gönderildi.</p>
         <input id="verifyEmail" class="auth-input verify-code-input" type="email" readonly>
         <input id="verifyCode" class="auth-input verify-code-input" type="text" inputmode="numeric" autocomplete="one-time-code">
         <div class="verify-otp-grid" id="verifyOtpGrid">
@@ -373,11 +373,11 @@
           <input class="verify-otp-digit" type="text" inputmode="numeric" maxlength="1" data-otp-index="7" aria-label="Kod hanesi 8">
         </div>
         <p class="verify-resend-text">Kod gelmedi mi?
-          <button id="resendVerifyCode" class="verify-resend-link" type="button">Tekrar gonder</button>
+          <button id="resendVerifyCode" class="verify-resend-link" type="button">Tekrar gönder</button>
         </p>
         <div class="verify-actions">
           <button id="backToPasswordFromVerify" class="verify-btn secondary" type="button">Geri Don</button>
-          <button id="verifyCodeSubmit" class="verify-btn primary" type="button">Dogrula</button>
+          <button id="verifyCodeSubmit" class="verify-btn primary" type="button">Doğrula</button>
         </div>
         <div id="authMessageStep3" class="auth-message"></div>
       </div>
@@ -388,13 +388,14 @@
         <div class="auth-label">Signed in as <span id="dashboardUserEmail"></span></div>
       </div>
       <button id="authSignOut" class="auth-btn" type="button">Sign Out</button>
-      <a class="auth-center-link" href="/">Ana sayfaya don</a>
+      <a class="auth-center-link" href="/">Ana sayfaya dön</a>
     </section>
 
-    <div class="auth-footer">Hizmet Sartlari ve Gizlilik Politikasi</div>
+    <div class="auth-footer">Hizmet Şartları ve Gizlilik Politikası</div>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="auth.js?v=20260301-2"></script>
+  <script src="auth.js?v=20260301-6"></script>
 </body>
 </html>
+
