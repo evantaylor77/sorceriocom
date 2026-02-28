@@ -56,6 +56,7 @@
     profileEl.title = userEmail || "Guest";
     signInBtn.style.display = session ? "none" : "inline-flex";
     signOutBtn.style.display = session ? "inline-flex" : "none";
+    profileEl.style.display = session ? "inline-flex" : "none";
   };
 
   const handleSignIn = async () => {
