@@ -1,0 +1,338 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MCPMarket | The Ultimate MCP Server Marketplace for Windows</title>
+  <meta name="description" content="Discover, install, and manage 22.167+ MCP servers for Cursor, VS Code, and other AI IDEs on Windows. One-click installation with automatic IDE configuration.">
+  <style>
+    html { background: #07080f !important; color: #fff !important; }
+    body { background: #07080f !important; visibility: hidden; opacity: 0; transition: opacity .3s ease; }
+    body.loaded { visibility: visible; opacity: 1; }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="landing_new.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-logo">
+        <div class="logo-icon">M</div>
+        <span>MCPMarket</span>
+      </div>
+      <div class="nav-links nav-links-main">
+        <a href="#features" class="nav-link">Features</a>
+        <a href="#servers" class="nav-link">Servers</a>
+        <a href="#ides" class="nav-link">IDE Support</a>
+        <a href="pricing.html" class="nav-link">Pricing</a>
+        <a href="#faq" class="nav-link">FAQ</a>
+      </div>
+      <div class="nav-cta">
+        <a href="https://github.com/mcpmarket/mcpmarket/releases" class="btn-primary" target="_blank">
+          <i class="fa-solid fa-download"></i> Download
+        </a>
+        <button id="authSignIn" class="auth-btn" type="button">Sign In</button>
+        <button id="authSignOut" class="auth-btn" type="button" style="display:none;">Sign Out</button>
+        <a id="authProfile" class="profile-avatar" href="javascript:void(0)" aria-label="Profile">?</a>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero section" id="top">
+    <div class="container hero-grid">
+      <div>
+        <span class="eyebrow"><i class="fa-solid fa-sparkles"></i> The Ultimate MCP Server Installer</span>
+        <h1>One-Click MCP Server Installation for Windows</h1>
+        <p>
+          Browse 22.167+ pre-configured MCP servers and install them with a single click. 
+          Automatic IDE configuration for Cursor, VS Code, Windsurf, Claude Code, Zed, Continue, Cline, and Kilo Code.
+        </p>
+        <div class="hero-actions">
+          <a href="https://github.com/mcpmarket/mcpmarket/releases" class="btn-primary" target="_blank">
+            <i class="fa-solid fa-download"></i> Download Now
+          </a>
+        </div>
+        <div class="mini-proof">
+          <span><i class="fa-solid fa-check"></i> Electron + Next.js</span>
+          <span><i class="fa-solid fa-check"></i> 22.167+ Pre-configured Servers</span>
+          <span><i class="fa-solid fa-check"></i> Auto IDE Config</span>
+        </div>
+      </div>
+      <aside class="hero-card">
+        <div class="stack-item">
+          <span class="stack-left">Browse servers</span>
+          <span class="stack-pill">Grid View</span>
+        </div>
+        <div class="stack-item">
+          <span class="stack-left">One-click install</span>
+          <span class="stack-pill">npm/pip/go/uvx</span>
+        </div>
+        <div class="stack-item">
+          <span class="stack-left">Auto-configure IDEs</span>
+          <span class="stack-pill">8 IDEs Supported</span>
+        </div>
+        <div class="stack-item">
+          <span class="stack-left">Manage env vars</span>
+          <span class="stack-pill">Secure Storage</span>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section" id="features">
+    <div class="container">
+      <div class="section-head">
+        <h2>Everything needed to manage MCP servers on Windows</h2>
+        <p>
+          Replace manual configuration with a streamlined application designed for speed, reliability, and ease of use.
+        </p>
+      </div>
+      <div class="feature-grid">
+        <article class="feature-card">
+          <div class="feature-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
+          <h3>Server Browser</h3>
+          <p>Browse 22.167+ MCP servers in a beautiful grid layout with search and filter capabilities.</p>
+        </article>
+        <article class="feature-card">
+          <div class="feature-icon"><i class="fa-solid fa-bolt"></i></div>
+          <h3>One-Click Installation</h3>
+          <p>Install via npm, pip, go, or uvx with real-time progress tracking and error handling.</p>
+        </article>
+        <article class="feature-card">
+          <div class="feature-icon"><i class="fa-solid fa-code"></i></div>
+          <h3>IDE Integration</h3>
+          <p>Auto-configure Cursor, VS Code, Windsurf, Claude Code, Zed, Continue, Cline, and Kilo Code.</p>
+        </article>
+        <article class="feature-card">
+          <div class="feature-icon"><i class="fa-solid fa-key"></i></div>
+          <h3>Secure Environment Variables</h3>
+          <p>Manage API keys and credentials securely with encrypted storage.</p>
+        </article>
+        <article class="feature-card">
+          <div class="feature-icon"><i class="fa-solid fa-plus-circle"></i></div>
+          <h3>Custom Servers</h3>
+          <p>Add your own MCP servers with full configuration support for installation and IDE setup.</p>
+        </article>
+        <article class="feature-card">
+          <div class="feature-icon"><i class="fa-solid fa-list-check"></i></div>
+          <h3>Installation Tracking</h3>
+          <p>View all installed servers, manage them, and track installation status in real-time.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="servers">
+    <div class="container">
+      <div class="section-head">
+        <h2>Pre-configured MCP Servers</h2>
+        <p>Popular servers ready to install with one click</p>
+      </div>
+      <div class="server-tags">
+        <span class="server-tag">Filesystem</span>
+        <span class="server-tag">GitHub</span>
+        <span class="server-tag">Brave Search</span>
+        <span class="server-tag">PostgreSQL</span>
+        <span class="server-tag">SQLite</span>
+        <span class="server-tag">Puppeteer</span>
+        <span class="server-tag">Slack</span>
+        <span class="server-tag">Google Maps</span>
+        <span class="server-tag">Memory</span>
+        <span class="server-tag">OpenAI</span>
+        <span class="server-tag">Docker</span>
+        <span class="server-tag">Notion</span>
+        <span class="server-tag">Redis</span>
+        <span class="server-tag">Kubernetes</span>
+        <span class="server-tag">Linear</span>
+        <span class="server-tag">Stripe</span>
+        <span class="server-tag">Jira</span>
+        <span class="server-tag">Obsidian</span>
+        <span class="server-tag">Git</span>
+        <span class="server-tag">+ More</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="ides">
+    <div class="container">
+      <div class="section-head">
+        <h2>Automatic IDE Configuration</h2>
+        <p>MCPMarket automatically generates configuration files for your favorite AI-powered IDEs</p>
+      </div>
+      <div class="ide-grid">
+        <div class="ide-card">
+          <div class="ide-icon">
+            <svg width="48" height="48" viewBox="0 0 128 128" fill="none">
+              <rect width="128" height="128" rx="24" fill="#007ACC"/>
+              <path d="M42 30C38.6863 30 36 32.6863 36 36V92C36 95.3137 38.6863 98 42 98H54C57.3137 98 60 95.3137 60 92V36C60 32.6863 57.3137 30 54 30H42Z" fill="white"/>
+              <path d="M74 46C70.6863 46 68 48.6863 68 52V92C68 95.3137 70.6863 98 74 98H86C89.3137 98 92 95.3137 92 92V52C92 48.6863 89.3137 46 86 46H74Z" fill="white"/>
+            </svg>
+          </div>
+          <h4>Cursor</h4>
+        </div>
+        <div class="ide-card">
+          <div class="ide-icon">
+            <svg width="48" height="48" viewBox="0 0 128 128" fill="none">
+              <rect width="128" height="128" rx="24" fill="#007ACC"/>
+              <path d="M20 26H48V38H32V52H46V64H32V88H46V100H20V26Z" fill="white"/>
+              <path d="M54 26H84V38H66V54H80V66H66V100H54V26Z" fill="white"/>
+              <path d="M92 26H104V88H120V100H92V26Z" fill="white"/>
+            </svg>
+          </div>
+          <h4>VS Code</h4>
+        </div>
+        <div class="ide-card">
+          <div class="ide-icon">
+            <svg width="48" height="48" viewBox="0 0 128 128" fill="none">
+              <rect width="128" height="128" rx="24" fill="#0066FF"/>
+              <circle cx="64" cy="64" r="16" fill="white"/>
+              <path d="M64 48L76 64L64 80L52 64L64 48Z" fill="#0066FF"/>
+              <path d="M28 64C28 43.565 43.565 28 64 28C84.435 28 100 43.565 100 64C100 84.435 84.435 100 64 100" stroke="white" stroke-width="8" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h4>Windsurf</h4>
+        </div>
+        <div class="ide-card">
+          <div class="ide-icon">
+            <svg width="48" height="48" viewBox="0 0 128 128" fill="none">
+              <rect width="128" height="128" rx="24" fill="#D97757"/>
+              <path d="M64 24C41.9086 24 24 41.9086 24 64C24 86.0914 41.9086 104 64 104C86.0914 104 104 86.0914 104 64C104 41.9086 86.0914 24 64 24Z" fill="white" fill-opacity="0.2"/>
+              <path d="M48 48L64 64L48 80L32 64L48 48Z" fill="white"/>
+              <path d="M80 48L96 64L80 80L64 64L80 48Z" fill="white"/>
+            </svg>
+          </div>
+          <h4>Claude Code</h4>
+        </div>
+        <div class="ide-card">
+          <div class="ide-icon">
+            <svg width="48" height="48" viewBox="0 0 128 128" fill="none">
+              <rect width="128" height="128" rx="24" fill="#121212"/>
+              <rect x="24" y="24" width="80" height="80" rx="12" fill="#1E1E1E" stroke="#333333" stroke-width="4"/>
+              <path d="M40 48H88M40 64H88M40 80H88" stroke="#696969" stroke-width="4" stroke-linecap="round"/>
+              <circle cx="104" cy="104" r="16" fill="#4CAF50"/>
+              <path d="M96 104L100 108L112 96" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h4>Zed</h4>
+        </div>
+        <div class="ide-card">
+          <div class="ide-icon">
+            <svg width="48" height="48" viewBox="0 0 128 128" fill="none">
+              <rect width="128" height="128" rx="24" fill="#6B21A8"/>
+              <path d="M32 64L50 46H78L96 64V82L78 100H50L32 82V64Z" fill="white"/>
+              <path d="M48 64H80M64 48V80" stroke="#6B21A8" stroke-width="6" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h4>Continue</h4>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="results">
+    <div class="container">
+      <div class="section-head">
+        <h2>Built for developer productivity</h2>
+        <p>Streamline your MCP server management workflow</p>
+      </div>
+      <div class="metrics">
+        <div class="metric"><strong>22.167+</strong><span>MCP Servers</span></div>
+        <div class="metric"><strong>8</strong><span>IDEs Supported</span></div>
+        <div class="metric"><strong>4</strong><span>Package Managers</span></div>
+        <div class="metric"><strong>1</strong><span>Click Install</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="cta-panel">
+        <div>
+          <h2 style="margin-bottom:8px;">Ready to supercharge your AI IDE?</h2>
+          <p>Download MCPMarket, browse servers, and start installing with a single click.</p>
+        </div>
+        <a href="https://github.com/mcpmarket/mcpmarket/releases" class="btn-primary" target="_blank">
+          <i class="fa-solid fa-download"></i> Download Now
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="faq">
+    <div class="container">
+      <div class="section-head">
+        <h2>Frequently asked questions</h2>
+      </div>
+      <div class="faq-grid">
+        <article class="faq-item">
+          <h4>What are MCP servers?</h4>
+          <p>MCP (Model Context Protocol) servers extend AI-powered IDEs like Cursor and Claude Code with additional tools for file operations, web search, database access, and more.</p>
+        </article>
+        <article class="faq-item">
+          <h4>Is MCPMarket free?</h4>
+          <p>MCPMarket offers a 14-day free trial. After that, choose between Plus ($10/month) or Pro ($20/month) plans.</p>
+        </article>
+        <article class="faq-item">
+          <h4>Which package managers are supported?</h4>
+          <p>MCPMarket supports npm, pip, go, and uvx package managers for installing MCP servers.</p>
+        </article>
+        <article class="faq-item">
+          <h4>How do I add custom servers?</h4>
+          <p>Use the "Add Custom Server" feature to add any MCP server with full configuration for installation and IDE setup.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-logo">
+          <div class="logo-icon-small">M</div>
+          <span>MCPMarket</span>
+        </div>
+        <div class="footer-links">
+          <a href="https://github.com/mcpmarket/mcpmarket" target="_blank">
+            <i class="fa-brands fa-github"></i> GitHub
+          </a>
+          <a href="https://github.com/mcpmarket/mcpmarket/issues" target="_blank">
+            <i class="fa-solid fa-bug"></i> Issues
+          </a>
+          <a href="https://modelcontextprotocol.io" target="_blank">
+            <i class="fa-solid fa-book"></i> MCP Docs
+          </a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 MCPMarket. Built with Electron + Next.js for Windows.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="auth.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      document.body.classList.add('loaded');
+      
+      // Smooth scrolling for anchor links
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+          e.preventDefault();
+          const target = document.querySelector(this.getAttribute('href'));
+          if (target) {
+            target.scrollIntoView({
+              behavior: 'smooth',
+              block: 'start'
+            });
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>
+
