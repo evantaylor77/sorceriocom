@@ -131,15 +131,19 @@
 
   if (continueToPasswordBtn) {
     continueToPasswordBtn.addEventListener("click", async () => {
-      const email = dashboardEmailEl?.value?.trim() || "";
+      const email = (dashboardEmailEl?.value?.trim() || "").toLowerCase();
       if (!email) {
         setMessage("E-posta adresinizi girin.", true);
         return;
       }
+      continueToPasswordBtn.disabled = true;
+      continueToPasswordBtn.textContent = "Kontrol ediliyor...";
 
       const { data, error: checkError } = await client.rpc("check_email_exists", {
         input_email: email
       });
+      continueToPasswordBtn.disabled = false;
+      continueToPasswordBtn.textContent = "Devam Et";
       if (checkError) {
         setMessage("E-posta kontrolü yapılamadı. Tekrar deneyin.", true);
         return;
@@ -203,7 +207,7 @@
 
   if (passwordSubmitBtn) {
     passwordSubmitBtn.addEventListener("click", async () => {
-      const email = dashboardEmailConfirmEl?.value?.trim() || dashboardEmailEl?.value?.trim() || "";
+      const email = (dashboardEmailConfirmEl?.value?.trim() || dashboardEmailEl?.value?.trim() || "").toLowerCase();
       const password = dashboardPasswordEl?.value || "";
 
       if (!email || !password) {
@@ -234,6 +238,17 @@
 
       const { error } = await client.auth.signInWithPassword({ email, password });
       if (error) {
+        if (String(error.message || "").toLowerCase().includes("invalid login credentials")) {
+          const { data } = await client.rpc("check_email_exists", { input_email: email });
+          const emailExists = resolveEmailExists(data);
+          if (!emailExists) {
+            checkedEmailExists = false;
+            isSignUpMode = true;
+            syncAuthModeText();
+            setMessage("Bu e-posta kayıtlı değil. Kayıt moduna geçildi, tekrar deneyin.", true, 2);
+            return;
+          }
+        }
         setMessage(error.message, true, 2);
         return;
       }
