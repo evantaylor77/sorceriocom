@@ -9,7 +9,18 @@
     html { background: #07080f !important; color: #fff !important; }
     body { background: #07080f !important; visibility: hidden; opacity: 0; transition: opacity .3s ease; }
     body.loaded { visibility: visible; opacity: 1; }
-    .pricing { padding: 60px 0 40px; }
+    .pricing { padding: 20px 0 40px !important; }
+    .pricing .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .pricing .section-head,
+    .pricing-toggle,
+    .pricing-grid,
+    .cta-section {
+      width: 100%;
+    }
     .pricing-toggle { display: flex; justify-content: center; margin: 8px 0 24px; }
     .section-head { text-align: center; margin-bottom: 24px; }
     .toggle-container {
@@ -44,6 +55,7 @@
       gap: 24px;
       max-width: 900px;
       margin: 0 auto;
+      justify-content: center;
     }
     .pricing-card {
       position: relative;
