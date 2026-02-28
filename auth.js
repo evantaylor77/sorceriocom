@@ -36,6 +36,7 @@
   const oauthAppleBtn = document.getElementById("oauthApple");
 
   let isSignUpMode = false;
+  let checkedEmailExists = null;
 
   const setMessage = (message, isError = false, step = 1) => {
     const target = step === 2 ? authMessageStep2El : authMessageEl;
@@ -57,11 +58,24 @@
   };
 
   const syncAuthModeText = () => {
-    if (!toggleSignMode || !passwordSubmitBtn) return;
-    toggleSignMode.textContent = isSignUpMode ? "Zaten hesabınız var mı? Giriş yap" : "Hesabınız yok mu? Kaydol";
-    passwordSubmitBtn.textContent = isSignUpMode ? "Kayıt ol" : "Giriş yap";
+    if (toggleSignMode) {
+      toggleSignMode.textContent = isSignUpMode ? "Zaten hesabınız var mı? Giriş yap" : "Hesabınız yok mu? Kaydol";
+    }
+    if (passwordSubmitBtn) {
+      passwordSubmitBtn.textContent = isSignUpMode ? "Kayıt ol" : "Giriş yap";
+    }
     if (forgotPasswordLink) forgotPasswordLink.style.display = isSignUpMode ? "none" : "inline";
     if (emailCodeSignInBtn) emailCodeSignInBtn.style.display = isSignUpMode ? "none" : "inline-flex";
+  };
+
+  const resolveEmailExists = (rpcData) => {
+    if (typeof rpcData === "boolean") return rpcData;
+    if (typeof rpcData === "string") return rpcData.toLowerCase() === "true" || rpcData === "t";
+    if (rpcData && typeof rpcData === "object") {
+      if (typeof rpcData.check_email_exists === "boolean") return rpcData.check_email_exists;
+      if (typeof rpcData.exists === "boolean") return rpcData.exists;
+    }
+    return false;
   };
 
   const authRedirectTo = window.location.origin + "/dashboard";
@@ -110,6 +124,7 @@
   if (toggleSignMode) {
     toggleSignMode.addEventListener("click", () => {
       isSignUpMode = !isSignUpMode;
+      checkedEmailExists = !isSignUpMode;
       syncAuthModeText();
     });
   }
@@ -122,7 +137,7 @@
         return;
       }
 
-      const { data: emailExists, error: checkError } = await client.rpc("check_email_exists", {
+      const { data, error: checkError } = await client.rpc("check_email_exists", {
         input_email: email
       });
       if (checkError) {
@@ -130,11 +145,17 @@
         return;
       }
 
+      const emailExists = resolveEmailExists(data);
+      checkedEmailExists = emailExists;
       isSignUpMode = !emailExists;
       syncAuthModeText();
 
       if (dashboardEmailConfirmEl) dashboardEmailConfirmEl.value = email;
       showStep(2);
+      if (dashboardPasswordEl) {
+        dashboardPasswordEl.value = "";
+        dashboardPasswordEl.focus();
+      }
       if (!emailExists) {
         setMessage("Bu e-posta kayıtlı değil. Kayıt moduna geçildi.", false, 2);
       }
@@ -190,8 +211,11 @@
         return;
       }
 
+      if (checkedEmailExists === false) isSignUpMode = true;
+      syncAuthModeText();
+
       if (isSignUpMode) {
-        const { error } = await client.auth.signUp({
+        const { data, error } = await client.auth.signUp({
           email,
           password,
           options: { emailRedirectTo: authRedirectTo }
@@ -200,7 +224,11 @@
           setMessage(error.message, true, 2);
           return;
         }
-        setMessage("Hesap oluşturuldu. E-posta doğrulaması gerekebilir.", false, 2);
+        if (data?.session) {
+          setMessage("Kayıt başarılı. Giriş yapıldı.", false, 2);
+          return;
+        }
+        setMessage("Kayıt başarılı. E-posta doğrulaması sonrası giriş yapabilirsiniz.", false, 2);
         return;
       }
 
