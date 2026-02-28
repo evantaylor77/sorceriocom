@@ -60,6 +60,8 @@
     if (!toggleSignMode || !passwordSubmitBtn) return;
     toggleSignMode.textContent = isSignUpMode ? "Zaten hesabınız var mı? Giriş yap" : "Hesabınız yok mu? Kaydol";
     passwordSubmitBtn.textContent = isSignUpMode ? "Kayıt ol" : "Giriş yap";
+    if (forgotPasswordLink) forgotPasswordLink.style.display = isSignUpMode ? "none" : "inline";
+    if (emailCodeSignInBtn) emailCodeSignInBtn.style.display = isSignUpMode ? "none" : "inline-flex";
   };
 
   const authRedirectTo = window.location.origin + "/dashboard";
@@ -113,14 +115,29 @@
   }
 
   if (continueToPasswordBtn) {
-    continueToPasswordBtn.addEventListener("click", () => {
+    continueToPasswordBtn.addEventListener("click", async () => {
       const email = dashboardEmailEl?.value?.trim() || "";
       if (!email) {
         setMessage("E-posta adresinizi girin.", true);
         return;
       }
+
+      const { data: emailExists, error: checkError } = await client.rpc("check_email_exists", {
+        input_email: email
+      });
+      if (checkError) {
+        setMessage("E-posta kontrolü yapılamadı. Tekrar deneyin.", true);
+        return;
+      }
+
+      isSignUpMode = !emailExists;
+      syncAuthModeText();
+
       if (dashboardEmailConfirmEl) dashboardEmailConfirmEl.value = email;
       showStep(2);
+      if (!emailExists) {
+        setMessage("Bu e-posta kayıtlı değil. Kayıt moduna geçildi.", false, 2);
+      }
     });
   }
 
