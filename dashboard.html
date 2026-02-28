@@ -1,94 +1,192 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard - MCPMarket</title>
+  <title>Sign In - MCPMarket</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="landing_new.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
-    .dashboard-wrap {
-      width: min(780px, calc(100% - 28px));
-      margin: 44px auto 64px;
-      padding: 24px;
-      border-radius: 18px;
-      border: 1px solid rgba(255,255,255,.12);
-      background: linear-gradient(145deg, rgba(0,0,0,.93), rgba(13,17,23,.9));
-      box-shadow: var(--shadow);
+    :root {
+      --bg: #060606;
+      --line: #2a261d;
+      --text: #f5f5f5;
+      --muted: #8e8e8e;
+      --btn: #10100c;
+      --hover: #181812;
     }
-    .dashboard-title { margin-bottom: 10px; }
-    .dashboard-sub { color: var(--muted); margin-bottom: 18px; }
-    .dash-field { margin-bottom: 10px; }
-    .dash-field label { display: block; font-size: .86rem; margin-bottom: 5px; color: #d1d8f0; }
-    .dash-field input {
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Manrope", "Space Grotesk", system-ui, sans-serif;
+      min-height: 100vh;
+    }
+    .top-logo {
+      position: fixed;
+      top: 26px;
+      left: 30px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: #ededed;
+      text-decoration: none;
+      letter-spacing: .02em;
+      font-weight: 800;
+      font-size: 1.02rem;
+    }
+    .auth-shell {
+      width: min(100%, 460px);
+      margin: 136px auto 0;
+      padding: 0 10px;
+    }
+    .auth-title {
+      margin: 0;
+      font-size: 3rem;
+      line-height: 1.07;
+      letter-spacing: -.02em;
+    }
+    .auth-subtitle {
+      margin: 2px 0 22px;
+      color: #5f5f5f;
+      font-size: 3rem;
+      line-height: 1.07;
+      letter-spacing: -.02em;
+    }
+    .auth-btn {
       width: 100%;
-      background: rgba(255,255,255,.04);
-      border: 1px solid rgba(255,255,255,.16);
-      border-radius: 10px;
-      color: #fff;
-      padding: 10px 12px;
+      height: 50px;
+      border: 1px solid #12120d;
+      background: var(--btn);
+      color: #f5f5f5;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      text-decoration: none;
+      transition: background .18s ease;
+      margin-bottom: 10px;
     }
-    .dash-actions { display: flex; gap: 8px; margin-top: 12px; }
-    .dash-message { min-height: 20px; margin-top: 12px; color: #f2cc6c; font-size: .9rem; }
+    .auth-btn:hover { background: var(--hover); }
+    .auth-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 10px 0 6px;
+    }
+    .auth-label {
+      color: #868686;
+      font-size: 1rem;
+      font-weight: 800;
+    }
+    .auth-link {
+      color: #cfcfcf;
+      text-decoration: none;
+      font-size: .95rem;
+      font-weight: 700;
+    }
+    .auth-link:hover { color: #ffffff; }
+    .auth-input {
+      width: 100%;
+      height: 50px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #0b0b09;
+      color: #fafafa;
+      font-size: 1rem;
+      padding: 0 14px;
+      outline: none;
+      margin-bottom: 10px;
+    }
+    .auth-input::placeholder { color: #6b6b6b; }
+    .auth-input:focus { border-color: #656047; }
+    .auth-center-link {
+      margin-top: 12px;
+      display: block;
+      text-align: center;
+      color: #c5c5c5;
+      text-decoration: none;
+      font-size: .95rem;
+      font-weight: 700;
+    }
+    .auth-message {
+      min-height: 24px;
+      margin-top: 10px;
+      color: #f2cc6c;
+      font-size: .9rem;
+      font-weight: 700;
+    }
+    .auth-footer {
+      margin-top: 76px;
+      text-align: center;
+      color: #6b6b6b;
+      font-size: .85rem;
+      font-weight: 700;
+    }
+    .auth-step { display: none; }
+    .auth-step.active { display: block; }
+    @media (max-width: 800px) {
+      .top-logo { top: 16px; left: 16px; font-size: .95rem; }
+      .auth-shell { margin-top: 88px; }
+      .auth-title, .auth-subtitle { font-size: 2.35rem; }
+    }
   </style>
 </head>
-<body class="loaded">
-  <nav class="navbar">
-    <div class="nav-container">
-      <div class="nav-logo">
-        <div class="logo-icon">M</div>
-        <span>MCPMarket</span>
-      </div>
-      <div class="nav-links nav-links-main">
-        <a href="/#features" class="nav-link">Features</a>
-        <a href="/#servers" class="nav-link">Servers</a>
-        <a href="/#ides" class="nav-link">IDE Support</a>
-        <a href="/pricing.html" class="nav-link">Pricing</a>
-        <a href="/#faq" class="nav-link">FAQ</a>
-      </div>
-      <div class="nav-cta">
-        <a id="authSignIn" class="auth-btn" href="/dashboard">Sign In</a>
-        <button id="authSignOut" class="auth-btn" type="button" style="display:none;">Sign Out</button>
-        <a id="authProfile" class="profile-avatar" href="javascript:void(0)" aria-label="Profile">?</a>
-        <a href="https://github.com/mcpmarket/mcpmarket/releases" class="btn-primary" target="_blank">
-          <i class="fa-solid fa-download"></i> Download
-        </a>
-      </div>
-    </div>
-  </nav>
+<body>
+  <a class="top-logo" href="/">
+    <i class="fa-solid fa-cube"></i>
+    <span>CURSOR</span>
+  </a>
 
-  <main class="dashboard-wrap">
-    <h1 class="dashboard-title">Dashboard</h1>
-    <p class="dashboard-sub">Sign in to access your membership dashboard.</p>
+  <main class="auth-shell">
+    <h1 class="auth-title">Welcome to Cursor</h1>
+    <p class="auth-subtitle">The new way to build software</p>
 
-    <section id="dashboardGuestView">
-      <form id="dashboardSignInForm">
-        <div class="dash-field">
-          <label for="dashboardEmail">Email</label>
-          <input id="dashboardEmail" type="email" autocomplete="email" required>
-        </div>
-        <div class="dash-field">
-          <label for="dashboardPassword">Password</label>
-          <input id="dashboardPassword" type="password" autocomplete="current-password" required>
-        </div>
-        <div class="dash-actions">
-          <button class="auth-btn" type="submit">Sign In</button>
-        </div>
-      </form>
-      <form id="dashboardSignUpForm">
-        <div class="dash-actions">
-          <button class="auth-btn" type="submit">Create Account</button>
-        </div>
-      </form>
-      <div id="authMessage" class="dash-message"></div>
+    <section id="authStepEmail" class="auth-step active">
+      <button id="oauthGoogle" class="auth-btn" type="button"><i class="fa-brands fa-google"></i> Google ile devam et</button>
+      <button id="oauthGithub" class="auth-btn" type="button"><i class="fa-brands fa-github"></i> GitHub ile devam et</button>
+      <button id="oauthApple" class="auth-btn" type="button"><i class="fa-brands fa-apple"></i> Apple ile devam et</button>
+      <div class="auth-label-row">
+        <label for="dashboardEmail" class="auth-label">E-posta</label>
+      </div>
+      <input id="dashboardEmail" class="auth-input" type="email" placeholder="E-posta adresiniz" autocomplete="email">
+      <button id="continueToPassword" class="auth-btn" type="button">Devam Et</button>
+      <a id="toggleSignMode" class="auth-center-link" href="javascript:void(0)">Hesabiniz yok mu? Kaydol</a>
+      <div id="authMessage" class="auth-message"></div>
+    </section>
+
+    <section id="authStepPassword" class="auth-step">
+      <button id="emailCodeSignIn" class="auth-btn" type="button"><i class="fa-regular fa-envelope"></i> E-posta giris kodu</button>
+      <div class="auth-label-row">
+        <label for="dashboardEmailConfirm" class="auth-label">E-posta</label>
+      </div>
+      <input id="dashboardEmailConfirm" class="auth-input" type="email" readonly>
+      <div class="auth-label-row">
+        <label for="dashboardPassword" class="auth-label">Sifre</label>
+        <a id="forgotPasswordLink" class="auth-link" href="javascript:void(0)">Sifrenizi mi unuttunuz?</a>
+      </div>
+      <input id="dashboardPassword" class="auth-input" type="password" placeholder="Sifreniz" autocomplete="current-password">
+      <button id="passwordSubmit" class="auth-btn" type="button">Giris yap</button>
+      <a id="backToEmail" class="auth-center-link" href="javascript:void(0)"><i class="fa-solid fa-angle-left"></i> Geri don</a>
+      <div id="authMessageStep2" class="auth-message"></div>
     </section>
 
     <section id="dashboardUserView" style="display:none;">
-      <p class="dashboard-sub">Signed in as: <strong id="dashboardUserEmail"></strong></p>
+      <div class="auth-label-row">
+        <div class="auth-label">Signed in as <span id="dashboardUserEmail"></span></div>
+      </div>
+      <button id="authSignOut" class="auth-btn" type="button">Sign Out</button>
+      <a class="auth-center-link" href="/">Ana sayfaya don</a>
     </section>
+
+    <div class="auth-footer">Hizmet Sartlari ve Gizlilik Politikasi</div>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

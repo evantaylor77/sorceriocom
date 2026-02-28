@@ -1,4 +1,4 @@
-(() => {
+﻿(() => {
   const SUPABASE_URL = "https://yvnymvyfzpxjxiuadmat.supabase.co";
   const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_Ut9Brq0lHzA_bqtiqTCvYw_mncnnuFT";
 
@@ -9,25 +9,192 @@
   const signInEl = document.getElementById("authSignIn");
   const signOutEl = document.getElementById("authSignOut");
   const profileEl = document.getElementById("authProfile");
-  const authMessageEl = document.getElementById("authMessage");
 
-  const setMessage = (message, isError = false) => {
-    if (!authMessageEl) return;
-    authMessageEl.textContent = message || "";
-    authMessageEl.style.color = isError ? "#fca5a5" : "#f2cc6c";
+  const isDashboard = window.location.pathname === "/dashboard" || window.location.pathname.endsWith("/dashboard.html");
+
+  const authStepEmail = document.getElementById("authStepEmail");
+  const authStepPassword = document.getElementById("authStepPassword");
+  const dashboardUserView = document.getElementById("dashboardUserView");
+  const dashboardUserEmail = document.getElementById("dashboardUserEmail");
+
+  const authMessageEl = document.getElementById("authMessage");
+  const authMessageStep2El = document.getElementById("authMessageStep2");
+
+  const dashboardEmailEl = document.getElementById("dashboardEmail");
+  const dashboardEmailConfirmEl = document.getElementById("dashboardEmailConfirm");
+  const dashboardPasswordEl = document.getElementById("dashboardPassword");
+
+  const continueToPasswordBtn = document.getElementById("continueToPassword");
+  const passwordSubmitBtn = document.getElementById("passwordSubmit");
+  const backToEmailBtn = document.getElementById("backToEmail");
+  const forgotPasswordLink = document.getElementById("forgotPasswordLink");
+  const emailCodeSignInBtn = document.getElementById("emailCodeSignIn");
+  const toggleSignMode = document.getElementById("toggleSignMode");
+
+  const oauthGoogleBtn = document.getElementById("oauthGoogle");
+  const oauthGithubBtn = document.getElementById("oauthGithub");
+  const oauthAppleBtn = document.getElementById("oauthApple");
+
+  let isSignUpMode = false;
+
+  const setMessage = (message, isError = false, step = 1) => {
+    const target = step === 2 ? authMessageStep2El : authMessageEl;
+    if (!target) return;
+    target.textContent = message || "";
+    target.style.color = isError ? "#fca5a5" : "#f2cc6c";
   };
+
+  const clearMessages = () => {
+    setMessage("");
+    setMessage("", false, 2);
+  };
+
+  const showStep = (stepNumber) => {
+    if (!authStepEmail || !authStepPassword) return;
+    authStepEmail.classList.toggle("active", stepNumber === 1);
+    authStepPassword.classList.toggle("active", stepNumber === 2);
+    clearMessages();
+  };
+
+  const syncAuthModeText = () => {
+    if (!toggleSignMode || !passwordSubmitBtn) return;
+    toggleSignMode.textContent = isSignUpMode ? "Zaten hesabınız var mı? Giriş yap" : "Hesabınız yok mu? Kaydol";
+    passwordSubmitBtn.textContent = isSignUpMode ? "Kayıt ol" : "Giriş yap";
+  };
+
+  const authRedirectTo = window.location.origin + "/dashboard";
 
   const setNavAuthUI = (session) => {
     if (!signInEl || !signOutEl || !profileEl) return;
 
     const userEmail = session?.user?.email || "";
     const initial = userEmail ? userEmail[0].toUpperCase() : "?";
+
     profileEl.textContent = initial;
     profileEl.title = userEmail || "Guest";
     profileEl.style.display = session ? "inline-flex" : "none";
     signInEl.style.display = session ? "none" : "inline-flex";
     signOutEl.style.display = session ? "inline-flex" : "none";
   };
+
+  const setDashboardUI = (session) => {
+    if (!isDashboard || !dashboardUserView) return;
+
+    const signedIn = Boolean(session);
+    if (authStepEmail && authStepPassword) {
+      authStepEmail.style.display = signedIn ? "none" : "";
+      authStepPassword.style.display = signedIn ? "none" : "";
+      if (!signedIn) showStep(1);
+    }
+    dashboardUserView.style.display = signedIn ? "block" : "none";
+
+    if (dashboardUserEmail) {
+      dashboardUserEmail.textContent = session?.user?.email || "";
+    }
+  };
+
+  const signInWithOAuth = async (provider) => {
+    const { error } = await client.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: authRedirectTo }
+    });
+    if (error) setMessage(error.message, true);
+  };
+
+  if (oauthGoogleBtn) oauthGoogleBtn.addEventListener("click", () => signInWithOAuth("google"));
+  if (oauthGithubBtn) oauthGithubBtn.addEventListener("click", () => signInWithOAuth("github"));
+  if (oauthAppleBtn) oauthAppleBtn.addEventListener("click", () => signInWithOAuth("apple"));
+
+  if (toggleSignMode) {
+    toggleSignMode.addEventListener("click", () => {
+      isSignUpMode = !isSignUpMode;
+      syncAuthModeText();
+    });
+  }
+
+  if (continueToPasswordBtn) {
+    continueToPasswordBtn.addEventListener("click", () => {
+      const email = dashboardEmailEl?.value?.trim() || "";
+      if (!email) {
+        setMessage("E-posta adresinizi girin.", true);
+        return;
+      }
+      if (dashboardEmailConfirmEl) dashboardEmailConfirmEl.value = email;
+      showStep(2);
+    });
+  }
+
+  if (backToEmailBtn) {
+    backToEmailBtn.addEventListener("click", () => showStep(1));
+  }
+
+  if (emailCodeSignInBtn) {
+    emailCodeSignInBtn.addEventListener("click", async () => {
+      const email = dashboardEmailConfirmEl?.value?.trim() || dashboardEmailEl?.value?.trim() || "";
+      if (!email) {
+        setMessage("E-posta adresinizi girin.", true, 2);
+        return;
+      }
+      const { error } = await client.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: authRedirectTo }
+      });
+      if (error) {
+        setMessage(error.message, true, 2);
+        return;
+      }
+      setMessage("Giriş kodu e-postanıza gönderildi.", false, 2);
+    });
+  }
+
+  if (forgotPasswordLink) {
+    forgotPasswordLink.addEventListener("click", async () => {
+      const email = dashboardEmailConfirmEl?.value?.trim() || dashboardEmailEl?.value?.trim() || "";
+      if (!email) {
+        setMessage("Önce e-posta girin.", true, 2);
+        return;
+      }
+      const { error } = await client.auth.resetPasswordForEmail(email, { redirectTo: authRedirectTo });
+      if (error) {
+        setMessage(error.message, true, 2);
+        return;
+      }
+      setMessage("Şifre sıfırlama bağlantısı gönderildi.", false, 2);
+    });
+  }
+
+  if (passwordSubmitBtn) {
+    passwordSubmitBtn.addEventListener("click", async () => {
+      const email = dashboardEmailConfirmEl?.value?.trim() || dashboardEmailEl?.value?.trim() || "";
+      const password = dashboardPasswordEl?.value || "";
+
+      if (!email || !password) {
+        setMessage("E-posta ve şifre gerekli.", true, 2);
+        return;
+      }
+
+      if (isSignUpMode) {
+        const { error } = await client.auth.signUp({
+          email,
+          password,
+          options: { emailRedirectTo: authRedirectTo }
+        });
+        if (error) {
+          setMessage(error.message, true, 2);
+          return;
+        }
+        setMessage("Hesap oluşturuldu. E-posta doğrulaması gerekebilir.", false, 2);
+        return;
+      }
+
+      const { error } = await client.auth.signInWithPassword({ email, password });
+      if (error) {
+        setMessage(error.message, true, 2);
+        return;
+      }
+      setMessage("Giriş başarılı.", false, 2);
+    });
+  }
 
   if (signOutEl) {
     signOutEl.addEventListener("click", async () => {
@@ -36,69 +203,9 @@
         setMessage(error.message, true);
         return;
       }
-      setMessage("Signed out.");
-      if (window.location.pathname === "/dashboard" || window.location.pathname.endsWith("/dashboard.html")) {
-        window.location.href = "/dashboard";
-      }
+      if (isDashboard) window.location.href = "/dashboard";
     });
   }
-
-  const signInForm = document.getElementById("dashboardSignInForm");
-  const signUpForm = document.getElementById("dashboardSignUpForm");
-
-  if (signInForm) {
-    signInForm.addEventListener("submit", async (event) => {
-      event.preventDefault();
-      const email = document.getElementById("dashboardEmail")?.value?.trim() || "";
-      const password = document.getElementById("dashboardPassword")?.value || "";
-      if (!email || !password) {
-        setMessage("Email and password are required.", true);
-        return;
-      }
-      const { error } = await client.auth.signInWithPassword({ email, password });
-      if (error) {
-        setMessage(error.message, true);
-        return;
-      }
-      setMessage("Signed in successfully.");
-    });
-  }
-
-  if (signUpForm) {
-    signUpForm.addEventListener("submit", async (event) => {
-      event.preventDefault();
-      const email = document.getElementById("dashboardEmail")?.value?.trim() || "";
-      const password = document.getElementById("dashboardPassword")?.value || "";
-      if (!email || !password) {
-        setMessage("Email and password are required.", true);
-        return;
-      }
-      const { error } = await client.auth.signUp({
-        email,
-        password,
-        options: { emailRedirectTo: window.location.origin + "/dashboard" }
-      });
-      if (error) {
-        setMessage(error.message, true);
-        return;
-      }
-      setMessage("Account created. Please verify your email if required.");
-    });
-  }
-
-  const dashboardGuestView = document.getElementById("dashboardGuestView");
-  const dashboardUserView = document.getElementById("dashboardUserView");
-  const dashboardUserEmail = document.getElementById("dashboardUserEmail");
-
-  const setDashboardUI = (session) => {
-    if (!dashboardGuestView || !dashboardUserView) return;
-    const isSignedIn = Boolean(session);
-    dashboardGuestView.style.display = isSignedIn ? "none" : "block";
-    dashboardUserView.style.display = isSignedIn ? "block" : "none";
-    if (dashboardUserEmail) {
-      dashboardUserEmail.textContent = session?.user?.email || "";
-    }
-  };
 
   client.auth.onAuthStateChange((_event, session) => {
     setNavAuthUI(session);
@@ -108,5 +215,7 @@
   client.auth.getSession().then(({ data }) => {
     setNavAuthUI(data.session);
     setDashboardUI(data.session);
+    syncAuthModeText();
+    if (!data.session && isDashboard) showStep(1);
   });
 })();
