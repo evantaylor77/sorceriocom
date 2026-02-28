@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sign In - MCPMarket</title>
+  <title>Sign In - OZMCP</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
@@ -13,9 +13,9 @@
       --bg: #060606;
       --line: #2a261d;
       --text: #f5f5f5;
-      --muted: #8e8e8e;
-      --btn: #10100c;
-      --hover: #181812;
+      --muted: #a49b84;
+      --btn: #11150f;
+      --hover: #1b2218;
     }
     * { box-sizing: border-box; }
     body {
@@ -24,6 +24,9 @@
       color: var(--text);
       font-family: "Manrope", "Space Grotesk", system-ui, sans-serif;
       min-height: 100vh;
+      background-image:
+        radial-gradient(700px 300px at 50% -90px, rgba(195, 157, 78, 0.18), transparent 60%),
+        linear-gradient(180deg, #070706 0%, #050505 100%);
     }
     .top-logo {
       position: fixed;
@@ -40,7 +43,7 @@
     }
     .auth-shell {
       width: min(100%, 460px);
-      margin: 136px auto 0;
+      margin: 108px auto 0;
       padding: 0 10px;
     }
     .auth-title {
@@ -51,7 +54,7 @@
     }
     .auth-subtitle {
       margin: 2px 0 22px;
-      color: #5f5f5f;
+      color: #9d9583;
       font-size: 3rem;
       line-height: 1.07;
       letter-spacing: -.02em;
@@ -71,10 +74,11 @@
       justify-content: center;
       gap: 10px;
       text-decoration: none;
-      transition: background .18s ease;
+      transition: background .18s ease, border-color .18s ease;
       margin-bottom: 10px;
+      box-shadow: inset 0 1px 0 rgba(255, 234, 194, 0.07);
     }
-    .auth-btn:hover { background: var(--hover); }
+    .auth-btn:hover { background: var(--hover); border-color: #7f6840; }
     .auth-label-row {
       display: flex;
       justify-content: space-between;
@@ -126,7 +130,7 @@
     .auth-footer {
       margin-top: 76px;
       text-align: center;
-      color: #6b6b6b;
+      color: #7f7969;
       font-size: .85rem;
       font-weight: 700;
     }
@@ -134,7 +138,7 @@
     .auth-step.active { display: block; }
     @media (max-width: 800px) {
       .top-logo { top: 16px; left: 16px; font-size: .95rem; }
-      .auth-shell { margin-top: 88px; }
+      .auth-shell { margin-top: 78px; }
       .auth-title, .auth-subtitle { font-size: 2.35rem; }
     }
   </style>
@@ -142,12 +146,12 @@
 <body>
   <a class="top-logo" href="/">
     <i class="fa-solid fa-cube"></i>
-    <span>CURSOR</span>
+    <span>OZMCP</span>
   </a>
 
   <main class="auth-shell">
-    <h1 class="auth-title">Welcome to Cursor</h1>
-    <p class="auth-subtitle">The new way to build software</p>
+    <h1 class="auth-title">Welcome to OZMCP</h1>
+    <p class="auth-subtitle">The smarter way to run MCP workflows</p>
 
     <section id="authStepEmail" class="auth-step active">
       <button id="oauthGoogle" class="auth-btn" type="button"><i class="fa-brands fa-google"></i> Google ile devam et</button>
