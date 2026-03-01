@@ -188,10 +188,18 @@
     }
     .paddle-inline-frame {
       width: 100%;
-      min-height: 440px;
+      min-height: 400px;
       border-radius: 10px;
       overflow: hidden;
       background: radial-gradient(circle at 22% 16%, rgba(242,204,108,.14), transparent 52%), #090b15;
+    }
+    /* Paddle form is cross-origin iframe; scale is the only safe way to make fields more compact. */
+    .paddle-inline-frame > iframe {
+      transform: scale(0.86);
+      transform-origin: top left;
+      width: calc(100% / 0.86) !important;
+      height: calc(100% / 0.86) !important;
+      border: 0;
     }
     body.checkout-focus-mode .pricing-content {
       width: min(100%, 920px);
@@ -307,7 +315,12 @@
         align-items: flex-start;
       }
       .paddle-inline-frame {
-        min-height: 430px;
+        min-height: 380px;
+      }
+      .paddle-inline-frame > iframe {
+        transform: scale(0.9);
+        width: calc(100% / 0.9) !important;
+        height: calc(100% / 0.9) !important;
       }
     }
     @media (max-width: 640px) {
@@ -707,7 +720,7 @@
           ? {
               displayMode: 'inline',
               frameTarget: 'paddle-checkout-frame',
-              frameInitialHeight: '540',
+              frameInitialHeight: '470',
               frameStyle: 'width: 100%; min-width: 280px; background-color: transparent; border: none;',
               variant: 'one-page',
               theme: 'dark',
