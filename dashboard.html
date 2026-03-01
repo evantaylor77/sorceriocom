@@ -327,31 +327,31 @@
     <p class="auth-subtitle">The smarter way to run MCP workflows</p>
 
     <section id="authStepEmail" class="auth-step active">
-      <button id="oauthGoogle" class="auth-btn" type="button"><i class="fa-brands fa-google"></i> Google ile devam et</button>
-      <button id="oauthGithub" class="auth-btn" type="button"><i class="fa-brands fa-github"></i> GitHub ile devam et</button>
-      <button id="oauthApple" class="auth-btn" type="button"><i class="fa-brands fa-apple"></i> Apple ile devam et</button>
+      <button id="oauthGoogle" class="auth-btn" type="button"><i class="fa-brands fa-google"></i> Continue with Google</button>
+      <button id="oauthGithub" class="auth-btn" type="button"><i class="fa-brands fa-github"></i> Continue with GitHub</button>
+      <button id="oauthApple" class="auth-btn" type="button"><i class="fa-brands fa-apple"></i> Continue with Apple</button>
       <div class="auth-label-row">
-        <label for="dashboardEmail" class="auth-label">E-posta</label>
+        <label for="dashboardEmail" class="auth-label">Email</label>
       </div>
-      <input id="dashboardEmail" class="auth-input" type="email" placeholder="E-posta adresiniz" autocomplete="email">
-      <button id="continueToPassword" class="auth-btn" type="button">Devam Et</button>
-      <a id="toggleSignMode" class="auth-center-link" href="javascript:void(0)">Hesabınız yok mu? Kaydol</a>
+      <input id="dashboardEmail" class="auth-input" type="email" placeholder="Your email address" autocomplete="email">
+      <button id="continueToPassword" class="auth-btn" type="button">Continue</button>
+      <a id="toggleSignMode" class="auth-center-link" href="javascript:void(0)">Don't have an account? Sign up</a>
       <div id="authMessage" class="auth-message"></div>
     </section>
 
     <section id="authStepPassword" class="auth-step">
-      <button id="emailCodeSignIn" class="auth-btn" type="button"><i class="fa-regular fa-envelope"></i> E-posta giriş kodu</button>
+      <button id="emailCodeSignIn" class="auth-btn" type="button"><i class="fa-regular fa-envelope"></i> Email sign-in code</button>
       <div class="auth-label-row">
-        <label for="dashboardEmailConfirm" class="auth-label">E-posta</label>
+        <label for="dashboardEmailConfirm" class="auth-label">Email</label>
       </div>
       <input id="dashboardEmailConfirm" class="auth-input" type="email" readonly>
       <div class="auth-label-row">
-        <label for="dashboardPassword" class="auth-label">Şifre</label>
-        <a id="forgotPasswordLink" class="auth-link" href="javascript:void(0)">Şifrenizi mi unuttunuz?</a>
+        <label for="dashboardPassword" class="auth-label">Password</label>
+        <a id="forgotPasswordLink" class="auth-link" href="javascript:void(0)">Forgot your password?</a>
       </div>
-      <input id="dashboardPassword" class="auth-input" type="password" placeholder="Şifreniz" autocomplete="current-password">
-      <button id="passwordSubmit" class="auth-btn" type="button">Giriş yap</button>
-      <a id="backToEmail" class="auth-center-link" href="javascript:void(0)"><i class="fa-solid fa-angle-left"></i> Geri dön</a>
+      <input id="dashboardPassword" class="auth-input" type="password" placeholder="Your password" autocomplete="current-password">
+      <button id="passwordSubmit" class="auth-btn" type="button">Sign in</button>
+      <a id="backToEmail" class="auth-center-link" href="javascript:void(0)"><i class="fa-solid fa-angle-left"></i> Go back</a>
       <div id="authMessageStep2" class="auth-message"></div>
     </section>
 
@@ -359,25 +359,25 @@
       <div class="verify-wrap">
         <div class="verify-badge"><i class="fa-solid fa-envelope-circle-check"></i></div>
         <h2 class="verify-title">Verification Code</h2>
-        <p class="verify-sub">Doğrulama kodu <strong id="verifyMaskedEmail">*****</strong> adresine gönderildi.</p>
+        <p class="verify-sub">Verification code sent to <strong id="verifyMaskedEmail">*****</strong>.</p>
         <input id="verifyEmail" class="auth-input verify-code-input" type="email" readonly>
         <input id="verifyCode" class="auth-input verify-code-input" type="text" inputmode="numeric" autocomplete="one-time-code">
         <div class="verify-otp-grid" id="verifyOtpGrid">
-          <input class="verify-otp-digit" type="text" inputmode="numeric" maxlength="1" data-otp-index="0" aria-label="Kod hanesi 1">
-          <input class="verify-otp-digit" type="text" inputmode="numeric" maxlength="1" data-otp-index="1" aria-label="Kod hanesi 2">
-          <input class="verify-otp-digit" type="text" inputmode="numeric" maxlength="1" data-otp-index="2" aria-label="Kod hanesi 3">
-          <input class="verify-otp-digit" type="text" inputmode="numeric" maxlength="1" data-otp-index="3" aria-label="Kod hanesi 4">
-          <input class="verify-otp-digit" type="text" inputmode="numeric" maxlength="1" data-otp-index="4" aria-label="Kod hanesi 5">
-          <input class="verify-otp-digit" type="text" inputmode="numeric" maxlength="1" data-otp-index="5" aria-label="Kod hanesi 6">
-          <input class="verify-otp-digit" type="text" inputmode="numeric" maxlength="1" data-otp-index="6" aria-label="Kod hanesi 7">
-          <input class="verify-otp-digit" type="text" inputmode="numeric" maxlength="1" data-otp-index="7" aria-label="Kod hanesi 8">
+          <input class="verify-otp-digit" type="text" inputmode="numeric" maxlength="1" data-otp-index="0" aria-label="Code digit 1">
+          <input class="verify-otp-digit" type="text" inputmode="numeric" maxlength="1" data-otp-index="1" aria-label="Code digit 2">
+          <input class="verify-otp-digit" type="text" inputmode="numeric" maxlength="1" data-otp-index="2" aria-label="Code digit 3">
+          <input class="verify-otp-digit" type="text" inputmode="numeric" maxlength="1" data-otp-index="3" aria-label="Code digit 4">
+          <input class="verify-otp-digit" type="text" inputmode="numeric" maxlength="1" data-otp-index="4" aria-label="Code digit 5">
+          <input class="verify-otp-digit" type="text" inputmode="numeric" maxlength="1" data-otp-index="5" aria-label="Code digit 6">
+          <input class="verify-otp-digit" type="text" inputmode="numeric" maxlength="1" data-otp-index="6" aria-label="Code digit 7">
+          <input class="verify-otp-digit" type="text" inputmode="numeric" maxlength="1" data-otp-index="7" aria-label="Code digit 8">
         </div>
-        <p class="verify-resend-text">Kod gelmedi mi?
-          <button id="resendVerifyCode" class="verify-resend-link" type="button">Tekrar gönder</button>
+        <p class="verify-resend-text">Code not received?
+          <button id="resendVerifyCode" class="verify-resend-link" type="button">Resend</button>
         </p>
         <div class="verify-actions">
-          <button id="backToPasswordFromVerify" class="verify-btn secondary" type="button">Geri Don</button>
-          <button id="verifyCodeSubmit" class="verify-btn primary" type="button">Doğrula</button>
+          <button id="backToPasswordFromVerify" class="verify-btn secondary" type="button">Go Back</button>
+          <button id="verifyCodeSubmit" class="verify-btn primary" type="button">Verify</button>
         </div>
         <div id="authMessageStep3" class="auth-message"></div>
       </div>
@@ -388,10 +388,10 @@
         <div class="auth-label">Signed in as <span id="dashboardUserEmail"></span></div>
       </div>
       <button id="authSignOut" class="auth-btn" type="button">Sign Out</button>
-      <a class="auth-center-link" href="/">Ana sayfaya dön</a>
+      <a class="auth-center-link" href="/">Back to home</a>
     </section>
 
-    <div class="auth-footer">Hizmet Şartları ve Gizlilik Politikası</div>
+    <div class="auth-footer">Terms of Service and Privacy Policy</div>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

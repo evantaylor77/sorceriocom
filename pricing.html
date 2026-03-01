@@ -485,12 +485,12 @@
 
       const openCheckoutFor = (plan, period, verifiedSession) => {
         if (!window.Paddle) {
-          showCheckoutMessage('Paddle yüklenemedi. Sayfayı yenileyip tekrar deneyin.', true);
+          showCheckoutMessage('Paddle failed to load. Please refresh the page and try again.', true);
           return;
         }
         const priceId = priceMap?.[plan]?.[period];
         if (!priceId) {
-          showCheckoutMessage('Plan/fiyat bilgisi bulunamadı.', true);
+          showCheckoutMessage('Plan/price information not found.', true);
           return;
         }
         if (checkoutPickedPlanEl) {
@@ -521,7 +521,7 @@
           token: paddleClientToken,
           eventCallback: function(event) {
             if (event?.name === 'checkout.completed') {
-              showCheckoutMessage('Ödeme başarıyla tamamlandı. Teşekkürler!', false);
+              showCheckoutMessage('Payment completed successfully. Thank you!', false);
             }
           }
         });
@@ -536,7 +536,7 @@
 
           const verifiedSession = await getVerifiedSession();
           if (!verifiedSession) {
-            showCheckoutMessage('Satın alma için önce giriş yapın veya kaydolun. Yönlendiriliyorsunuz...', false);
+            showCheckoutMessage('Please sign in or sign up to purchase. Redirecting...', false);
             goToAuthForCheckout(plan, period);
             return;
           }
@@ -557,7 +557,7 @@
       if (resumeCheckout) {
         getVerifiedSession().then((verifiedSession) => {
           if (!verifiedSession) return;
-          showCheckoutMessage('Giriş başarılı. Satın alma ekranınız açılıyor...', false);
+          showCheckoutMessage('Sign-in successful. Opening checkout...', false);
           openCheckoutFor(resumePlan, resumePeriod, verifiedSession);
           params.delete('resumeCheckout');
           params.delete('plan');

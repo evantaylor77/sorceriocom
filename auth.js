@@ -121,11 +121,11 @@
     if (!resendVerifyCodeBtn) return;
     if (remaining <= 0) {
       resendVerifyCodeBtn.disabled = false;
-      resendVerifyCodeBtn.textContent = "Tekrar gönder";
+      resendVerifyCodeBtn.textContent = "Resend";
       return;
     }
     resendVerifyCodeBtn.disabled = true;
-    resendVerifyCodeBtn.textContent = `Tekrar gönder (${remaining}s)`;
+    resendVerifyCodeBtn.textContent = `Resend (${remaining}s)`;
   };
 
   const startResendCooldown = () => {
@@ -144,10 +144,10 @@
 
   const syncAuthModeText = () => {
     if (toggleSignMode) {
-      toggleSignMode.textContent = isSignUpMode ? "Zaten hesabınız var mı? Giriş yap" : "Hesabınız yok mu? Kaydol";
+      toggleSignMode.textContent = isSignUpMode ? "Already have an account? Sign in" : "Don't have an account? Sign up";
     }
     if (passwordSubmitBtn) {
-      passwordSubmitBtn.textContent = isSignUpMode ? "Kayıt ol" : "Giriş yap";
+      passwordSubmitBtn.textContent = isSignUpMode ? "Sign up" : "Sign in";
     }
     if (forgotPasswordLink) forgotPasswordLink.style.display = isSignUpMode ? "none" : "inline";
     if (emailCodeSignInBtn) emailCodeSignInBtn.style.display = isSignUpMode ? "none" : "inline-flex";
@@ -285,19 +285,19 @@
     continueToPasswordBtn.addEventListener("click", async () => {
       const email = (dashboardEmailEl?.value?.trim() || "").toLowerCase();
       if (!email) {
-        setMessage("E-posta adresinizi girin.", true);
+        setMessage("Please enter your email address.", true);
         return;
       }
       continueToPasswordBtn.disabled = true;
-      continueToPasswordBtn.textContent = "Kontrol ediliyor...";
+      continueToPasswordBtn.textContent = "Checking...";
 
       const { data, error: checkError } = await client.rpc("check_email_exists", {
         input_email: email
       });
       continueToPasswordBtn.disabled = false;
-      continueToPasswordBtn.textContent = "Devam Et";
+      continueToPasswordBtn.textContent = "Continue";
       if (checkError) {
-        setMessage("E-posta kontrolü yapılamadı. Tekrar deneyin.", true);
+        setMessage("Could not check email. Please try again.", true);
         return;
       }
 
@@ -313,7 +313,7 @@
         dashboardPasswordEl.focus();
       }
       if (!emailExists) {
-        setMessage("Bu e-posta kayıtlı değil. Kayıt moduna geçildi.", false, 2);
+        setMessage("This email is not registered. Switched to sign-up mode.", false, 2);
       }
     });
   }
@@ -376,7 +376,7 @@
     emailCodeSignInBtn.addEventListener("click", async () => {
       const email = dashboardEmailConfirmEl?.value?.trim() || dashboardEmailEl?.value?.trim() || "";
       if (!email) {
-        setMessage("E-posta adresinizi girin.", true, 2);
+        setMessage("Please enter your email address.", true, 2);
         return;
       }
       const { error } = await client.auth.signInWithOtp({
@@ -395,7 +395,7 @@
       showStep(3);
       focusOtpIndex(0);
       startResendCooldown();
-      setMessage("Giriş kodu e-postanıza gönderildi. Kodla devam edin.", false, 3);
+      setMessage("Sign-in code sent to your email. Continue with the code.", false, 3);
     });
   }
 
@@ -403,7 +403,7 @@
     forgotPasswordLink.addEventListener("click", async () => {
       const email = dashboardEmailConfirmEl?.value?.trim() || dashboardEmailEl?.value?.trim() || "";
       if (!email) {
-        setMessage("Önce e-posta girin.", true, 2);
+        setMessage("Please enter your email first.", true, 2);
         return;
       }
       const { error } = await client.auth.resetPasswordForEmail(email, { redirectTo: authRedirectTo });
@@ -411,7 +411,7 @@
         setMessage(error.message, true, 2);
         return;
       }
-      setMessage("Şifre sıfırlama bağlantısı gönderildi.", false, 2);
+      setMessage("Password reset link sent.", false, 2);
     });
   }
 
@@ -421,13 +421,13 @@
       const password = dashboardPasswordEl?.value || "";
 
       if (!email || !password) {
-        setMessage("E-posta ve şifre gerekli.", true, 2);
+        setMessage("Email and password are required.", true, 2);
         return;
       }
 
       if (checkedEmailExists === false) isSignUpMode = true;
       syncAuthModeText();
-      setButtonLoading(passwordSubmitBtn, true, isSignUpMode ? "Kayıt oluşturuluyor..." : "Giriş yapılıyor...");
+      setButtonLoading(passwordSubmitBtn, true, isSignUpMode ? "Creating account..." : "Signing in...");
 
       if (isSignUpMode) {
         const { data, error } = await client.auth.signUp({
@@ -460,18 +460,18 @@
               showStep(3);
               focusOtpIndex(0);
               startResendCooldown();
-              setMessage("Onay e-postası limiti doldu. Giriş kodu gönderildi, kodu girerek devam edin.", false, 3);
+              setMessage("Confirmation email limit reached. Sign-in code sent, enter code to continue.", false, 3);
               return;
             }
 
-            setMessage("Yeni kod şu an gönderilemiyor. Son gelen e-posta kodunu girip devam edin.", false, 3);
+            setMessage("Cannot send new code right now. Enter the latest email code to continue.", false, 3);
             return;
           }
           setMessage(error.message, true, 2);
           return;
         }
         if (data?.session) {
-          setMessage("Kayıt başarılı. Giriş yapıldı.", false, 2);
+          setMessage("Sign-up successful. You are signed in.", false, 2);
           redirectAfterAuth();
           return;
         }
@@ -484,7 +484,7 @@
         showStep(3);
         focusOtpIndex(0);
         startResendCooldown();
-        setMessage("Onay kodu e-postanıza gönderildi. Kodu girip hesabı doğrulayın.", false, 3);
+        setMessage("Confirmation code sent to your email. Enter code to verify your account.", false, 3);
         return;
       }
 
@@ -500,7 +500,7 @@
           clearOtpDigits();
           showStep(3);
           focusOtpIndex(0);
-          setMessage("E-posta doğrulanmadı. E-postadaki kodu girerek devamı tamamlayın.", true, 3);
+          setMessage("Email not verified. Enter the code from your email to complete sign-in.", true, 3);
           return;
         }
         if (String(error.message || "").toLowerCase().includes("invalid login credentials")) {
@@ -510,7 +510,7 @@
             checkedEmailExists = false;
             isSignUpMode = true;
             syncAuthModeText();
-            setMessage("Bu e-posta kayıtlı değil. Kayıt moduna geçildi, tekrar deneyin.", true, 2);
+            setMessage("This email is not registered. Switched to sign-up mode, please try again.", true, 2);
             return;
           }
         }
@@ -529,10 +529,10 @@
         clearOtpDigits();
         showStep(3);
         focusOtpIndex(0);
-        setMessage("E-posta doğrulama tamamlanmadan giriş yapılamaz.", true, 3);
+        setMessage("Cannot sign in until email verification is complete.", true, 3);
         return;
       }
-      setMessage("Giriş başarılı.", false, 2);
+      setMessage("Sign-in successful.", false, 2);
       redirectAfterAuth();
     });
   }
@@ -543,10 +543,10 @@
       syncHiddenVerifyCode();
       const token = (verifyCodeEl?.value?.trim() || "").replace(/\D/g, "");
       if (!email || !token) {
-        setMessage("E-posta ve onay kodu gerekli.", true, 3);
+        setMessage("Email and verification code are required.", true, 3);
         return;
       }
-      setButtonLoading(verifyCodeSubmitBtn, true, "Kod doğrulanıyor...");
+      setButtonLoading(verifyCodeSubmitBtn, true, "Verifying code...");
       const preferredType = pendingVerificationType === "email" ? "email" : "signup";
       const fallbackType = preferredType === "signup" ? "email" : "signup";
 
@@ -573,7 +573,7 @@
         return;
       }
       clearOtpDigits();
-      setMessage("E-posta doğrulandı. Giriş başarılı.", false, 3);
+      setMessage("Email verified. Sign-in successful.", false, 3);
       redirectAfterAuth();
     });
   }
@@ -583,7 +583,7 @@
     resendVerifyCodeBtn.addEventListener("click", async () => {
       const email = (verifyEmailEl?.value?.trim() || pendingVerificationEmail || "").toLowerCase();
       if (!email) {
-        setMessage("Tekrar göndermek için e-posta bulunamadı.", true, 3);
+        setMessage("No email found to resend.", true, 3);
         return;
       }
       updateVerifyMaskedEmail(email);
@@ -607,14 +607,14 @@
         resendVerifyCodeBtn.disabled = false;
         const lowerMsg = String(error.message || "").toLowerCase();
         if (lowerMsg.includes("rate limit")) {
-          setMessage("Yeni kod şu an gönderilemiyor. Son gelen e-posta kodunu girip devam edin.", false, 3);
+          setMessage("Cannot send new code right now. Enter the latest email code to continue.", false, 3);
           return;
         }
         setMessage(error.message, true, 3);
         return;
       }
       startResendCooldown();
-      setMessage("Onay kodu tekrar gönderildi.", false, 3);
+      setMessage("Confirmation code resent.", false, 3);
     });
   }
 
@@ -632,7 +632,7 @@
   client.auth.onAuthStateChange(async (_event, session) => {
     if (session && !isVerifiedSession(session)) {
       await client.auth.signOut();
-      setMessage("E-posta doğrulama tamamlanmadan sisteme giriş yapılamaz.", true, 2);
+      setMessage("Cannot sign in to the system until email verification is complete.", true, 2);
       showStep(1);
       return;
     }
@@ -649,7 +649,7 @@
       await client.auth.signOut();
       setNavAuthUI(null);
       setDashboardUI(null);
-      setMessage("E-posta doğrulama tamamlanmadan sisteme giriş yapılamaz.", true, 2);
+      setMessage("Cannot sign in to the system until email verification is complete.", true, 2);
       showStep(1);
       return;
     }
