@@ -67,8 +67,79 @@
       padding: 2px 7px;
     }
     .checkout-shell {
-      width: min(100%, 618px);
+      width: min(100%, 700px);
       margin: 0;
+    }
+    .checkout-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(280px, .9fr);
+      gap: 14px;
+      align-items: stretch;
+    }
+    .checkout-main {
+      min-width: 0;
+    }
+    .checkout-summary {
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 14px;
+      background: linear-gradient(160deg, rgba(14,17,31,.98), rgba(8,10,18,.98));
+      padding: 16px 14px;
+      display: grid;
+      grid-auto-rows: max-content;
+      gap: 12px;
+    }
+    .checkout-summary-head {
+      display: grid;
+      gap: 2px;
+    }
+    .checkout-summary-kicker {
+      color: #9ca8cf;
+      font-size: .74rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+    .checkout-summary-plan {
+      color: #f6f9ff;
+      font-size: 1.18rem;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+    .checkout-summary-price {
+      color: #f2cc6c;
+      font-size: 1.44rem;
+      font-weight: 800;
+      line-height: 1.1;
+    }
+    .checkout-summary-cycle {
+      color: #c8d3f5;
+      font-size: .9rem;
+      margin-top: -4px;
+    }
+    .checkout-summary-list {
+      list-style: none;
+      margin: 2px 0 0;
+      padding: 0;
+      display: grid;
+      gap: 8px;
+      color: #d6dffc;
+      font-size: .88rem;
+    }
+    .checkout-summary-list li {
+      display: flex;
+      gap: 9px;
+      align-items: flex-start;
+    }
+    .checkout-summary-list i {
+      color: #f2cc6c;
+      margin-top: 2px;
+    }
+    .checkout-summary-footnote {
+      color: #9ca8cf;
+      font-size: .78rem;
+      line-height: 1.35;
+      border-top: 1px solid rgba(255,255,255,.08);
+      padding-top: 10px;
     }
     #pricingCheckoutMessage {
       display: none;
@@ -120,6 +191,17 @@
       border-radius: 10px;
       overflow: hidden;
       background: radial-gradient(circle at 22% 16%, rgba(242,204,108,.14), transparent 52%), #090b15;
+    }
+    body.checkout-focus-mode .pricing-content {
+      width: min(100%, 1120px);
+    }
+    body.checkout-focus-mode .checkout-shell {
+      width: min(100%, 1120px);
+    }
+    body.checkout-focus-mode .pricing-grid,
+    body.checkout-focus-mode .cta-section,
+    body.checkout-focus-mode .faq-section {
+      display: none !important;
     }
     .pricing .pricing-grid {
       display: grid;
@@ -189,6 +271,9 @@
       .pricing-content {
         width: min(100%, 360px);
       }
+      body.checkout-focus-mode .pricing-content {
+        width: min(100%, 560px);
+      }
       .pricing .pricing-grid {
         grid-template-columns: 1fr;
         align-items: center;
@@ -201,6 +286,12 @@
       .checkout-shell {
         width: 100%;
         max-width: 360px;
+      }
+      body.checkout-focus-mode .checkout-shell {
+        max-width: 560px;
+      }
+      .checkout-layout {
+        grid-template-columns: 1fr;
       }
       .paddle-inline-head {
         flex-direction: column;
@@ -263,11 +354,31 @@
         <div class="checkout-shell">
           <div id="pricingCheckoutMessage"></div>
           <div id="paddleInlineWrap" class="paddle-inline-wrap" hidden>
-            <div class="paddle-inline-head">
-              <div class="paddle-inline-title">Complete your purchase</div>
-              <button id="closeInlineCheckout" type="button" class="paddle-close-btn">Close</button>
+            <div class="checkout-layout">
+              <div class="checkout-main">
+                <div class="paddle-inline-head">
+                  <div class="paddle-inline-title">Complete your purchase</div>
+                  <button id="closeInlineCheckout" type="button" class="paddle-close-btn">Close</button>
+                </div>
+                <div id="paddleInlineFrame" class="paddle-inline-frame paddle-checkout-frame"></div>
+              </div>
+              <aside class="checkout-summary">
+                <div class="checkout-summary-head">
+                  <div class="checkout-summary-kicker">Selected Plan</div>
+                  <div id="checkoutSummaryPlan" class="checkout-summary-plan">Plus</div>
+                  <div id="checkoutSummaryPrice" class="checkout-summary-price">$10</div>
+                  <div id="checkoutSummaryCycle" class="checkout-summary-cycle">Billed monthly</div>
+                </div>
+                <ul class="checkout-summary-list">
+                  <li><i class="fa-solid fa-circle-check"></i><span>Instant activation after payment</span></li>
+                  <li><i class="fa-solid fa-circle-check"></i><span>Secure checkout with Card or PayPal</span></li>
+                  <li><i class="fa-solid fa-circle-check"></i><span>Cancel anytime from your account</span></li>
+                </ul>
+                <div class="checkout-summary-footnote">
+                  Purchase mode keeps the page focused so the checkout fits cleanly on screen.
+                </div>
+              </aside>
             </div>
-            <div id="paddleInlineFrame" class="paddle-inline-frame paddle-checkout-frame"></div>
           </div>
         </div>
 
@@ -424,6 +535,11 @@
       const plusYearlyPriceEl = document.getElementById('plusYearlyPrice');
       const proMonthlyPriceEl = document.getElementById('proMonthlyPrice');
       const proYearlyPriceEl = document.getElementById('proYearlyPrice');
+      const checkoutSummaryPlanEl = document.getElementById('checkoutSummaryPlan');
+      const checkoutSummaryPriceEl = document.getElementById('checkoutSummaryPrice');
+      const checkoutSummaryCycleEl = document.getElementById('checkoutSummaryCycle');
+      let currentCheckoutPlan = 'plus';
+      let currentCheckoutPeriod = 'monthly';
 
       const showCheckoutMessage = (message, isError) => {
         if (!checkoutMessageEl) return;
@@ -481,6 +597,27 @@
         if (plan === 'pro' && period === 'yearly' && proYearlyPriceEl) proYearlyPriceEl.textContent = priceText;
       };
 
+      const setCheckoutFocusMode = (enabled) => {
+        document.body.classList.toggle('checkout-focus-mode', Boolean(enabled));
+      };
+
+      const updateCheckoutSummary = (plan, period) => {
+        const normalizedPlan = plan === 'pro' ? 'pro' : 'plus';
+        const normalizedPeriod = period === 'yearly' ? 'yearly' : 'monthly';
+        const amount = displayedAmounts?.[normalizedPlan]?.[normalizedPeriod];
+        const planLabel = normalizedPlan === 'pro' ? 'Pro' : 'Plus';
+        const cycleLabel = normalizedPeriod === 'yearly' ? 'Billed yearly' : 'Billed monthly';
+        const priceLabel = Number.isFinite(Number(amount))
+          ? `$${Number.isInteger(Number(amount)) ? String(Number(amount)) : Number(amount).toFixed(2)}`
+          : '';
+
+        currentCheckoutPlan = normalizedPlan;
+        currentCheckoutPeriod = normalizedPeriod;
+        if (checkoutSummaryPlanEl) checkoutSummaryPlanEl.textContent = planLabel;
+        if (checkoutSummaryPriceEl) checkoutSummaryPriceEl.textContent = priceLabel;
+        if (checkoutSummaryCycleEl) checkoutSummaryCycleEl.textContent = cycleLabel;
+      };
+
       const isVerifiedSession = (session) => {
         const confirmedAt = session?.user?.email_confirmed_at || session?.user?.confirmed_at;
         return Boolean(session && confirmedAt);
@@ -502,11 +639,13 @@
         if (!paddleInlineWrapEl) return;
         paddleInlineWrapEl.hidden = true;
         if (paddleInlineFrameEl) paddleInlineFrameEl.innerHTML = '';
+        setCheckoutFocusMode(false);
       };
 
       const showInlineCheckout = () => {
         if (!paddleInlineWrapEl) return false;
         paddleInlineWrapEl.hidden = false;
+        setCheckoutFocusMode(true);
         paddleInlineWrapEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return true;
       };
@@ -546,6 +685,7 @@
           showCheckoutMessage('Plan/price information not found.', true);
           return;
         }
+        updateCheckoutSummary(plan, period);
         showCheckoutMessage('', false);
         const user = verifiedSession?.user || {};
         const customData = {
@@ -620,9 +760,11 @@
 
       monthlyBtn.addEventListener('click', function () {
         setPeriod('monthly');
+        if (!paddleInlineWrapEl?.hidden) updateCheckoutSummary(currentCheckoutPlan, 'monthly');
       });
       yearlyBtn.addEventListener('click', function () {
         setPeriod('yearly');
+        if (!paddleInlineWrapEl?.hidden) updateCheckoutSummary(currentCheckoutPlan, 'yearly');
       });
       if (closeInlineCheckoutEl) {
         closeInlineCheckoutEl.addEventListener('click', function () {
