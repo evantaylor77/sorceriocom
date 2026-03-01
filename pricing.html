@@ -32,13 +32,13 @@
       display: flex;
       justify-content: center;
       width: auto;
-      margin: 8px 0 20px;
+      margin: 4px 0 10px;
     }
     .section-head {
       text-align: center;
       width: 100%;
-      margin-top: 6px;
-      margin-bottom: 16px;
+      margin-top: 4px;
+      margin-bottom: 8px;
     }
     .toggle-container {
       background: rgba(255,255,255,.04);
@@ -68,7 +68,7 @@
     }
     .checkout-shell {
       width: min(100%, 618px);
-      margin: 0 0 16px;
+      margin: 0 0 10px;
       border: 1px solid rgba(212,168,47,.28);
       border-radius: 16px;
       background: linear-gradient(130deg, rgba(24,20,12,.92), rgba(10,13,24,.92));
@@ -78,19 +78,10 @@
     .checkout-shell-top {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: flex-end;
       gap: 12px;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
-    .checkout-shell-title {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      color: #f5e5b8;
-      font-weight: 800;
-      letter-spacing: .01em;
-    }
-    .checkout-shell-title i { color: #f2cc6c; }
     .checkout-picked {
       color: #dce5ff;
       font-size: .92rem;
@@ -123,6 +114,48 @@
       font-size: .9rem;
       font-weight: 700;
       text-align: center;
+    }
+    .paddle-inline-wrap {
+      margin-top: 10px;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 14px;
+      background: linear-gradient(160deg, rgba(15,18,31,.95), rgba(9,11,20,.95));
+      padding: 10px;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.03);
+    }
+    .paddle-inline-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .paddle-inline-title {
+      color: #e6ecff;
+      font-size: .9rem;
+      font-weight: 700;
+      letter-spacing: .01em;
+    }
+    .paddle-close-btn {
+      border: 1px solid rgba(255,255,255,.2);
+      background: rgba(255,255,255,.06);
+      color: #d8e1ff;
+      border-radius: 999px;
+      font-size: .78rem;
+      font-weight: 700;
+      padding: 6px 10px;
+      cursor: pointer;
+    }
+    .paddle-close-btn:hover {
+      border-color: rgba(242,204,108,.45);
+      color: #f4ddb0;
+    }
+    .paddle-inline-frame {
+      width: 100%;
+      min-height: 560px;
+      border-radius: 10px;
+      overflow: hidden;
+      background: radial-gradient(circle at 22% 16%, rgba(242,204,108,.14), transparent 52%), #090b15;
     }
     .pricing .pricing-grid {
       display: grid;
@@ -206,11 +239,17 @@
         max-width: 360px;
       }
       .checkout-shell-top {
-        flex-direction: column;
-        align-items: flex-start;
+        justify-content: flex-start;
       }
       .checkout-picked {
         text-align: left;
+      }
+      .paddle-inline-head {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .paddle-inline-frame {
+        min-height: 520px;
       }
     }
     @media (max-width: 640px) {
@@ -260,20 +299,26 @@
         <div class="pricing-toggle">
           <div class="toggle-container">
             <button class="toggle-btn active" data-period="monthly">Monthly</button>
-            <button class="toggle-btn" data-period="yearly">Yearly <span class="discount-badge">Save 17%</span></button>
+            <button class="toggle-btn" data-period="yearly">Yearly <span class="discount-badge" id="savingsBadge">Save 17%</span></button>
           </div>
         </div>
         <div class="checkout-shell">
           <div class="checkout-shell-top">
-            <div class="checkout-shell-title"><i class="fa-solid fa-credit-card"></i> Secure Paddle Checkout</div>
             <div id="checkoutPickedPlan" class="checkout-picked">Selected: <strong>Plus Monthly</strong></div>
           </div>
           <div class="checkout-chips">
-            <span class="checkout-chip"><i class="fa-solid fa-shield-halved"></i> Sandbox Billing</span>
+            <span class="checkout-chip"><i class="fa-solid fa-shield-halved"></i> Secure Checkout</span>
             <span class="checkout-chip"><i class="fa-solid fa-bolt"></i> Instant Access</span>
             <span class="checkout-chip"><i class="fa-solid fa-repeat"></i> Manage Subscription</span>
           </div>
           <div id="pricingCheckoutMessage"></div>
+          <div id="paddleInlineWrap" class="paddle-inline-wrap" hidden>
+            <div class="paddle-inline-head">
+              <div class="paddle-inline-title">Complete your purchase</div>
+              <button id="closeInlineCheckout" type="button" class="paddle-close-btn">Close</button>
+            </div>
+            <div id="paddleInlineFrame" class="paddle-inline-frame"></div>
+          </div>
         </div>
 
         <div class="pricing-grid">
@@ -285,12 +330,12 @@
               <div class="plan-description">For individual developers</div>
               <div class="plan-price monthly-price">
                 <span class="currency">$</span>
-                <span class="price">10</span>
+                <span class="price" id="plusMonthlyPrice">10</span>
                 <span class="period">/month</span>
               </div>
               <div class="plan-price yearly-price" style="display: none;">
                 <span class="currency">$</span>
-                <span class="price">100</span>
+                <span class="price" id="plusYearlyPrice">100</span>
                 <span class="period">/year</span>
               </div>
             </div>
@@ -315,12 +360,12 @@
               <div class="plan-description">For power users and teams</div>
               <div class="plan-price monthly-price">
                 <span class="currency">$</span>
-                <span class="price">20</span>
+                <span class="price" id="proMonthlyPrice">20</span>
                 <span class="period">/month</span>
               </div>
               <div class="plan-price yearly-price" style="display: none;">
                 <span class="currency">$</span>
-                <span class="price">160</span>
+                <span class="price" id="proYearlyPrice">160</span>
                 <span class="period">/year</span>
               </div>
             </div>
@@ -411,33 +456,26 @@
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       document.body.classList.add('loaded');
-      
-      // Pricing toggle functionality
-      const monthlyBtn = document.querySelector('[data-period="monthly"]');
-      const yearlyBtn = document.querySelector('[data-period="yearly"]');
-      const monthlyPrices = document.querySelectorAll('.monthly-price');
-      const yearlyPrices = document.querySelectorAll('.yearly-price');
-
-      monthlyBtn.addEventListener('click', function() {
-        monthlyBtn.classList.add('active');
-        yearlyBtn.classList.remove('active');
-        monthlyPrices.forEach(price => price.style.display = 'flex');
-        yearlyPrices.forEach(price => price.style.display = 'none');
-      });
-
-      yearlyBtn.addEventListener('click', function() {
-        yearlyBtn.classList.add('active');
-        monthlyBtn.classList.remove('active');
-        yearlyPrices.forEach(price => price.style.display = 'flex');
-        monthlyPrices.forEach(price => price.style.display = 'none');
-      });
 
       const SUPABASE_URL = 'https://yvnymvyfzpxjxiuadmat.supabase.co';
       const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_Ut9Brq0lHzA_bqtiqTCvYw_mncnnuFT';
       const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY) : null;
 
+      const monthlyBtn = document.querySelector('[data-period="monthly"]');
+      const yearlyBtn = document.querySelector('[data-period="yearly"]');
+      const monthlyPrices = document.querySelectorAll('.monthly-price');
+      const yearlyPrices = document.querySelectorAll('.yearly-price');
+      const savingsBadgeEl = document.getElementById('savingsBadge');
       const checkoutMessageEl = document.getElementById('pricingCheckoutMessage');
       const checkoutPickedPlanEl = document.getElementById('checkoutPickedPlan');
+      const paddleInlineWrapEl = document.getElementById('paddleInlineWrap');
+      const paddleInlineFrameEl = document.getElementById('paddleInlineFrame');
+      const closeInlineCheckoutEl = document.getElementById('closeInlineCheckout');
+      const plusMonthlyPriceEl = document.getElementById('plusMonthlyPrice');
+      const plusYearlyPriceEl = document.getElementById('plusYearlyPrice');
+      const proMonthlyPriceEl = document.getElementById('proMonthlyPrice');
+      const proYearlyPriceEl = document.getElementById('proYearlyPrice');
+
       const showCheckoutMessage = (message, isError) => {
         if (!checkoutMessageEl) return;
         checkoutMessageEl.textContent = message || '';
@@ -455,12 +493,49 @@
           yearly: 'pri_01jzrxd62tpy5x3rjpr40eh43k'
         }
       };
+      const displayedAmounts = {
+        plus: { monthly: 10, yearly: 100 },
+        pro: { monthly: 20, yearly: 160 }
+      };
+      let selectedPlan = 'plus';
+
+      const setPeriod = (period) => {
+        const isYearly = period === 'yearly';
+        monthlyBtn.classList.toggle('active', !isYearly);
+        yearlyBtn.classList.toggle('active', isYearly);
+        monthlyPrices.forEach((price) => {
+          price.style.display = isYearly ? 'none' : 'flex';
+        });
+        yearlyPrices.forEach((price) => {
+          price.style.display = isYearly ? 'flex' : 'none';
+        });
+      };
+
+      const updateSavingsBadge = () => {
+        if (!savingsBadgeEl) return;
+        const monthly = Number(displayedAmounts.plus.monthly);
+        const yearly = Number(displayedAmounts.plus.yearly);
+        if (!monthly || !yearly) return;
+        const yearlyEquivalent = monthly * 12;
+        const discountPercent = Math.max(0, Math.round(((yearlyEquivalent - yearly) / yearlyEquivalent) * 100));
+        savingsBadgeEl.textContent = `Save ${discountPercent}%`;
+      };
+
+      const setDisplayedPrice = (plan, period, amount) => {
+        const normalizedAmount = Number(amount);
+        if (!Number.isFinite(normalizedAmount) || normalizedAmount <= 0) return;
+        displayedAmounts[plan][period] = normalizedAmount;
+        const priceText = Number.isInteger(normalizedAmount) ? String(normalizedAmount) : normalizedAmount.toFixed(2);
+        if (plan === 'plus' && period === 'monthly' && plusMonthlyPriceEl) plusMonthlyPriceEl.textContent = priceText;
+        if (plan === 'plus' && period === 'yearly' && plusYearlyPriceEl) plusYearlyPriceEl.textContent = priceText;
+        if (plan === 'pro' && period === 'monthly' && proMonthlyPriceEl) proMonthlyPriceEl.textContent = priceText;
+        if (plan === 'pro' && period === 'yearly' && proYearlyPriceEl) proYearlyPriceEl.textContent = priceText;
+      };
 
       const updatePickedPlan = () => {
         const selectedPeriodBtn = document.querySelector('.toggle-btn.active');
         const period = selectedPeriodBtn?.dataset?.period === 'yearly' ? 'Yearly' : 'Monthly';
-        const preferredPlan = document.querySelector('.pricing-card.featured .js-paddle-checkout')?.dataset?.plan || 'plus';
-        const plan = preferredPlan === 'pro' ? 'Pro' : 'Plus';
+        const plan = selectedPlan === 'pro' ? 'Pro' : 'Plus';
         if (checkoutPickedPlanEl) {
           checkoutPickedPlanEl.innerHTML = `Selected: <strong>${plan} ${period}</strong>`;
         }
@@ -483,6 +558,44 @@
         window.location.href = `/dashboard?next=${encodeURIComponent(nextPath)}`;
       };
 
+      const hideInlineCheckout = () => {
+        if (!paddleInlineWrapEl) return;
+        paddleInlineWrapEl.hidden = true;
+        if (paddleInlineFrameEl) paddleInlineFrameEl.innerHTML = '';
+      };
+
+      const showInlineCheckout = () => {
+        if (!paddleInlineWrapEl) return false;
+        paddleInlineWrapEl.hidden = false;
+        paddleInlineWrapEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return true;
+      };
+
+      const syncPricesFromPaddle = async () => {
+        if (!window.Paddle) return;
+        const plans = ['plus', 'pro'];
+        const periods = ['monthly', 'yearly'];
+        for (const plan of plans) {
+          for (const period of periods) {
+            const priceId = priceMap?.[plan]?.[period];
+            if (!priceId) continue;
+            try {
+              const preview = await window.Paddle.PricePreview({
+                items: [{ priceId, quantity: 1 }]
+              });
+              const lineItem = preview?.data?.details?.lineItems?.[0];
+              const amountCents = Number(lineItem?.price?.unitPrice?.amount);
+              if (Number.isFinite(amountCents) && amountCents > 0) {
+                setDisplayedPrice(plan, period, amountCents / 100);
+              }
+            } catch (_) {
+              // Keep fallback prices if preview fails.
+            }
+          }
+        }
+        updateSavingsBadge();
+      };
+
       const openCheckoutFor = (plan, period, verifiedSession) => {
         if (!window.Paddle) {
           showCheckoutMessage('Paddle failed to load. Please refresh the page and try again.', true);
@@ -503,28 +616,48 @@
           supabase_email: user.email || '',
           plan_tier: plan
         };
+        const useInlineCheckout = showInlineCheckout();
+        const checkoutSettings = useInlineCheckout
+          ? {
+              displayMode: 'inline',
+              frameTarget: 'paddleInlineFrame',
+              frameInitialHeight: 620,
+              frameStyle: 'width: 100%; min-width: 312px; background-color: transparent; border: none;',
+              variant: 'one-page',
+              theme: 'dark',
+              locale: 'en'
+            }
+          : {
+              displayMode: 'overlay',
+              variant: 'one-page',
+              theme: 'dark',
+              locale: 'en'
+            };
         Paddle.Checkout.open({
           items: [{ priceId: priceId, quantity: 1 }],
           customer: user.email ? { email: user.email } : undefined,
           customData,
-          settings: {
-            displayMode: 'overlay',
-            theme: 'dark',
-            locale: 'en'
-          }
+          settings: checkoutSettings
         });
       };
 
       if (window.Paddle) {
-        Paddle.Environment.set('sandbox');
+        if (paddleClientToken.startsWith('test_')) {
+          Paddle.Environment.set('sandbox');
+        }
         Paddle.Initialize({
           token: paddleClientToken,
           eventCallback: function(event) {
             if (event?.name === 'checkout.completed') {
               showCheckoutMessage('Payment completed successfully. Thank you!', false);
+              hideInlineCheckout();
+            }
+            if (event?.name === 'checkout.closed') {
+              hideInlineCheckout();
             }
           }
         });
+        syncPricesFromPaddle();
       }
 
       const checkoutButtons = document.querySelectorAll('.js-paddle-checkout');
@@ -533,6 +666,8 @@
           const selectedPeriodBtn = document.querySelector('.toggle-btn.active');
           const period = selectedPeriodBtn?.dataset?.period === 'yearly' ? 'yearly' : 'monthly';
           const plan = String(button.dataset.plan || '').toLowerCase() === 'pro' ? 'pro' : 'plus';
+          selectedPlan = plan;
+          updatePickedPlan();
 
           const verifiedSession = await getVerifiedSession();
           if (!verifiedSession) {
@@ -544,8 +679,23 @@
         });
       });
 
-      monthlyBtn.addEventListener('click', updatePickedPlan);
-      yearlyBtn.addEventListener('click', updatePickedPlan);
+      monthlyBtn.addEventListener('click', function () {
+        setPeriod('monthly');
+        updatePickedPlan();
+      });
+      yearlyBtn.addEventListener('click', function () {
+        setPeriod('yearly');
+        updatePickedPlan();
+      });
+      if (closeInlineCheckoutEl) {
+        closeInlineCheckoutEl.addEventListener('click', function () {
+          if (window.Paddle?.Checkout?.close) window.Paddle.Checkout.close();
+          hideInlineCheckout();
+        });
+      }
+
+      setPeriod('monthly');
+      updateSavingsBadge();
       updatePickedPlan();
 
       const params = new URLSearchParams(window.location.search);
@@ -553,7 +703,9 @@
       const resumePlan = String(params.get('plan') || 'plus').toLowerCase() === 'pro' ? 'pro' : 'plus';
       const resumePeriod = params.get('period') === 'yearly' ? 'yearly' : 'monthly';
 
-      if (resumePeriod === 'yearly') yearlyBtn.click();
+      if (resumePeriod === 'yearly') setPeriod('yearly');
+      selectedPlan = resumePlan;
+      updatePickedPlan();
       if (resumeCheckout) {
         getVerifiedSession().then((verifiedSession) => {
           if (!verifiedSession) return;
