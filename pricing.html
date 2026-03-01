@@ -267,7 +267,7 @@
               <div class="paddle-inline-title">Complete your purchase</div>
               <button id="closeInlineCheckout" type="button" class="paddle-close-btn">Close</button>
             </div>
-            <div id="paddleInlineFrame" class="paddle-inline-frame"></div>
+            <div id="paddleInlineFrame" class="paddle-inline-frame paddle-checkout-frame"></div>
           </div>
         </div>
 
@@ -557,8 +557,8 @@
         const checkoutSettings = useInlineCheckout
           ? {
               displayMode: 'inline',
-              frameTarget: 'paddleInlineFrame',
-              frameInitialHeight: 620,
+              frameTarget: 'paddle-checkout-frame',
+              frameInitialHeight: '620',
               frameStyle: 'width: 100%; min-width: 312px; background-color: transparent; border: none;',
               variant: 'one-page',
               theme: 'dark',
@@ -570,12 +570,16 @@
               theme: 'dark',
               locale: 'en'
             };
-        Paddle.Checkout.open({
-          items: [{ priceId: priceId, quantity: 1 }],
-          customer: user.email ? { email: user.email } : undefined,
-          customData,
-          settings: checkoutSettings
-        });
+        try {
+          Paddle.Checkout.open({
+            items: [{ priceId: priceId, quantity: 1 }],
+            customer: user.email ? { email: user.email } : undefined,
+            customData,
+            settings: checkoutSettings
+          });
+        } catch (_) {
+          showCheckoutMessage('Checkout could not be opened. Please refresh and try again.', true);
+        }
       };
 
       if (window.Paddle) {
