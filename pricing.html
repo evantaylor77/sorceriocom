@@ -188,18 +188,10 @@
     }
     .paddle-inline-frame {
       width: 100%;
-      min-height: 400px;
+      min-height: 450px;
       border-radius: 10px;
       overflow: hidden;
       background: radial-gradient(circle at 22% 16%, rgba(242,204,108,.14), transparent 52%), #090b15;
-    }
-    /* Paddle form is cross-origin iframe; scale is the only safe way to make fields more compact. */
-    .paddle-inline-frame > iframe {
-      transform: scale(0.86);
-      transform-origin: top left;
-      width: calc(100% / 0.86) !important;
-      height: calc(100% / 0.86) !important;
-      border: 0;
     }
     body.checkout-focus-mode .pricing-content {
       width: min(100%, 920px);
@@ -315,12 +307,7 @@
         align-items: flex-start;
       }
       .paddle-inline-frame {
-        min-height: 380px;
-      }
-      .paddle-inline-frame > iframe {
-        transform: scale(0.9);
-        width: calc(100% / 0.9) !important;
-        height: calc(100% / 0.9) !important;
+        min-height: 420px;
       }
     }
     @media (max-width: 640px) {
@@ -720,15 +707,19 @@
           ? {
               displayMode: 'inline',
               frameTarget: 'paddle-checkout-frame',
-              frameInitialHeight: '470',
-              frameStyle: 'width: 100%; min-width: 280px; background-color: transparent; border: none;',
-              variant: 'one-page',
+              frameInitialHeight: '450',
+              frameStyle: 'width: 100%; min-width: 312px; background-color: transparent; border: none;',
+              variant: 'multi-page',
+              showAddTaxId: false,
+              showAddDiscounts: false,
               theme: 'dark',
               locale: 'en'
             }
           : {
               displayMode: 'overlay',
-              variant: 'one-page',
+              variant: 'multi-page',
+              showAddTaxId: false,
+              showAddDiscounts: false,
               theme: 'dark',
               locale: 'en'
             };
