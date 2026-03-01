@@ -72,7 +72,7 @@
     }
     .checkout-layout {
       display: grid;
-      grid-template-columns: minmax(0, 480px) minmax(200px, 230px);
+      grid-template-columns: minmax(0, 336px) minmax(170px, 200px);
       gap: 9px;
       align-items: stretch;
       justify-content: center;
@@ -80,7 +80,7 @@
     .checkout-main {
       min-width: 0;
       width: 100%;
-      max-width: 480px;
+      max-width: 336px;
     }
     .checkout-summary {
       border: 1px solid rgba(255,255,255,.14);
@@ -191,7 +191,7 @@
     }
     .paddle-inline-frame {
       width: 100%;
-      max-width: 460px;
+      max-width: 322px;
       margin: 0 auto;
       min-height: 450px;
       border-radius: 10px;
@@ -199,10 +199,10 @@
       background: radial-gradient(circle at 22% 16%, rgba(242,204,108,.14), transparent 52%), #090b15;
     }
     body.checkout-focus-mode .pricing-content {
-      width: min(100%, 760px);
+      width: min(100%, 560px);
     }
     body.checkout-focus-mode .checkout-shell {
-      width: min(100%, 760px);
+      width: min(100%, 560px);
     }
     body.checkout-focus-mode .pricing {
       margin-top: 0 !important;
@@ -717,7 +717,7 @@
               displayMode: 'inline',
               frameTarget: 'paddle-checkout-frame',
               frameInitialHeight: '450',
-              frameStyle: 'width: 100%; max-width: 460px; min-width: 312px; margin: 0 auto; background-color: transparent; border: none;',
+              frameStyle: 'width: 100%; max-width: 322px; min-width: 312px; margin: 0 auto; background-color: transparent; border: none;',
               variant: 'multi-page',
               showAddTaxId: false,
               showAddDiscounts: false,
