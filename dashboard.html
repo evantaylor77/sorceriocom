@@ -41,9 +41,12 @@
       font-weight: 700;
       font-size: 1.1rem;
     }
-    .top-logo i {
-      font-size: 1.5rem;
-      color: #f2cc6c;
+    .top-logo .site-logo {
+      width: 34px;
+      height: 34px;
+      object-fit: contain;
+      border-radius: 8px;
+      display: block;
     }
     .auth-shell {
       width: min(100%, 460px);
@@ -318,7 +321,7 @@
 </head>
 <body>
   <a class="top-logo" href="/">
-    <i class="fa-solid fa-cube"></i>
+    <img src="assets/logo.png" alt="OZMCP logo" class="site-logo">
     <span>OZMCP</span>
   </a>
 
